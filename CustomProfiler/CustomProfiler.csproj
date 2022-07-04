@@ -68,9 +68,9 @@ if exist "$(BattleTechGameDir)\Mods_CBDE\Core\CustomProfiler" (
   echo %25BattleTechGameDir%25
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomProfiler"
 )
-if exist "$(BattleTechGameDir)\Mods\Core\CustomProfiler" (
+if exist "$(BattleTechGameDir)\Mods\CustomProfiler" (
   echo %25BattleTechGameDir%25
-  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\CustomProfiler"
+  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\CustomProfiler"
 )
 		</PostBuildEvent>
   </PropertyGroup>

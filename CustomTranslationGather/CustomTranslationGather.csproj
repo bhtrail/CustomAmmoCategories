@@ -49,6 +49,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\CustomTranslation"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\CustomTranslation"</PostBuildEvent>
   </PropertyGroup>
 </Project>

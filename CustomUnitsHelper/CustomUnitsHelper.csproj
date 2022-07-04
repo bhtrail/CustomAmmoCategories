@@ -58,8 +58,8 @@
     <PostBuildEvent>if exist "$(BattleTechGameDir)\Mods_CBDE\Core\CustomUnits" (
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomUnits"
 )
-if exist "$(BattleTechGameDir)\Mods\Core\CustomUnits" (
-  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\CustomUnits"
+if exist "$(BattleTechGameDir)\Mods\CustomUnits" (
+  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\CustomUnits"
 )
 if exist "$(RogueTechRepo)\Core\CustomUnits" (
   copy /Y "$(TargetPath)" "$(RogueTechRepo)\Core\CustomUnits"

@@ -44,7 +44,7 @@
     <Reference Include="ModTek">
       <HintPath>$(BattleTechGameDir)\Mods\ModTek\ModTek.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -73,8 +73,8 @@
 if exist "$(BattleTechGameDir)\Mods_CBDE\Core\DBGSkirmishMechList" (
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\DBGSkirmishMechList"
 )
-if exist "$(BattleTechGameDir)\Mods\Core\DBGSkirmishMechList" (
-  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\DBGSkirmishMechList"
+if exist "$(BattleTechGameDir)\Mods7\DBGSkirmishMechList" (
+  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\DBGSkirmishMechList"
 )
 if exist "$(RogueTechRepo)\Core\DBGSkirmishMechList" (
   copy /Y "$(TargetPath)" "$(RogueTechRepo)\Core\DBGSkirmishMechList"

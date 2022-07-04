@@ -124,9 +124,9 @@ if exist "$(BattleTechGameDir)\Mods_CBDE\Core\CustomAmmoCategories" (
    echo %25BattleTechGameDir%25
    copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomAmmoCategories"
 )
-if exist "$(BattleTechGameDir)\Mods\Core\CustomAmmoCategories" (
+if exist "$(BattleTechGameDir)\Mods\CustomAmmoCategories" (
    echo %25BattleTechGameDir%25
-   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\CustomAmmoCategories"
+   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\CustomAmmoCategories"
 )
 if exist "$(RogueTechRepo)\Core\CustomAmmoCategories" (
    echo %25BattleTechGameDir%25

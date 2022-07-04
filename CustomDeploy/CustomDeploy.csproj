@@ -40,13 +40,13 @@
       <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp_publicized">
-      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\publicized_assemblies\Assembly-CSharp_publicized.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\publicized\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="InControl">
       <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\InControl.dll</HintPath>
     </Reference>
     <Reference Include="IRBTModUtils">
-      <HintPath>$(BattleTechGameDir)\Mods\Core\IRBTModUtils\IRBTModUtils.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\Mods\IRBTModUtils\IRBTModUtils.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\Newtonsoft.Json.dll</HintPath>
@@ -100,9 +100,9 @@
   echo %25BattleTechGameDir%25
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomUnits"
 )
-if exist "$(BattleTechGameDir)\Mods\Core\CustomUnits" (
+if exist "$(BattleTechGameDir)\Mods\CustomUnits" (
   echo %25BattleTechGameDir%25
-  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\CustomUnits"
+  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\CustomUnits"
 )
 if exist "$(RogueTechRepo)\Core\CustomUnits" (
   echo %25BattleTechGameDir%25
