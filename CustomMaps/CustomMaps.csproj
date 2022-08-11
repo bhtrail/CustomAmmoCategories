@@ -35,8 +35,8 @@
     <Reference Include="0Harmony">
       <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp_publicized">
-      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\publicized_assemblies\Assembly-CSharp_publicized.dll</HintPath>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\publicized\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\Newtonsoft.Json.dll</HintPath>
@@ -57,11 +57,11 @@
     </Reference>
     <Reference Include="UnityEngine.TerrainModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\BattleTech_Data\Managed\UnityEngine.TerrainModule.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\UnityEngine.TerrainModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TerrainPhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\BattleTech_Data\Managed\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\UnityEngine.TerrainPhysicsModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -84,7 +84,7 @@ if exist "$(BattleTechGameDir)\Mods_CBDE\Core\CustomMaps" (
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomMaps"
   copy /Y "$(ProjectDir)\mod.json" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomMaps"
 )
-if exist "$(BattleTechGameDir)\Mods\Core\CustomMaps" (
+if exist "$(BattleTechGameDir)\Mods\CustomMaps" (
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\CustomMaps"
   copy /Y "$(ProjectDir)\mod.json" "$(BattleTechGameDir)\Mods\Core\CustomMaps"
 )
