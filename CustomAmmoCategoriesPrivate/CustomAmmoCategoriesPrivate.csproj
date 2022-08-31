@@ -35,14 +35,14 @@
   <ItemGroup>
     <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(BattleTechGameDir)\Mods\ModTek\0Harmony.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp_publicized">
-      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\publicized_assemblies\Assembly-CSharp_publicized.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\publicized\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="IRBTModUtils, Version=1.30.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(BattleTechGameDir)\Mods\Core\IRBTModUtils\IRBTModUtils.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\Mods\IRBTModUtils\IRBTModUtils.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -73,9 +73,9 @@
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomAmmoCategories"
   copy /Y "$(ProjectDir)..\AdditionalFiles\CU\Readme.txt" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomAmmoCategories"
 )
-if exist "$(BattleTechGameDir)\Mods\Core\CustomAmmoCategories" (
-  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\Core\CustomAmmoCategories"
-  copy /Y "$(ProjectDir)..\AdditionalFiles\CU\Readme.txt" "$(BattleTechGameDir)\Mods\Core\CustomAmmoCategories"
+if exist "$(BattleTechGameDir)\Mods\CustomAmmoCategories" (
+  copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\CustomAmmoCategories"
+  copy /Y "$(ProjectDir)..\AdditionalFiles\CU\Readme.txt" "$(BattleTechGameDir)\Mods\CustomAmmoCategories"
 )
 if exist "$(RogueTechRepo)\Core\CustomAmmoCategories" (
   copy /Y "$(TargetPath)" "$(RogueTechRepo)\Core\CustomAmmoCategories"
