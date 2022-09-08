@@ -71,7 +71,6 @@
   <PropertyGroup>
     <PostBuildEvent>if exist "$(BattleTechGameDir)\Mods_CBDE\Core\CustomAmmoCategories" (
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomAmmoCategories"
-  copy /Y "$(ProjectDir)..\AdditionalFiles\CU\Readme.txt" "$(BattleTechGameDir)\Mods_CBDE\Core\CustomAmmoCategories"
 )
 if exist "$(BattleTechGameDir)\Mods\CustomAmmoCategories" (
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)\Mods\CustomAmmoCategories"
@@ -79,7 +78,6 @@ if exist "$(BattleTechGameDir)\Mods\CustomAmmoCategories" (
 )
 if exist "$(RogueTechRepo)\Core\CustomAmmoCategories" (
   copy /Y "$(TargetPath)" "$(RogueTechRepo)\Core\CustomAmmoCategories"
-  copy /Y "$(ProjectDir)..\AdditionalFiles\CU\Readme.txt" "$(RogueTechRepo)\Core\CustomAmmoCategories"
 )
 		</PostBuildEvent>
   </PropertyGroup>

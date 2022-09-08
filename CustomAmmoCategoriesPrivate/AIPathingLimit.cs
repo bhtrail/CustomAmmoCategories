@@ -162,7 +162,7 @@ namespace CustAmmoCategories {
     /* code for this method is provided by Ashakar */
     private static Stopwatch GetSampledPathNodes_timer = new Stopwatch();
     public static bool GetSampledPathNodes_Prefix(PathNodeGrid __instance,ref List<PathNode> __result) {
-      GetSampledPathNodes_timer.Start();
+      GetSampledPathNodes_timer.Restart();
       if (CustomAmmoCategories.Settings.AIPathingMultithread == false) { return true; }
       try {
         ConcurrentBag<PathNode> list = new ConcurrentBag<PathNode>();
@@ -196,7 +196,7 @@ namespace CustAmmoCategories {
           + " limit samples:"+ Thread.CurrentThread.isFlagSet(LIMIT_PATHING_SAMPLES) 
           + " moveType:"+___moveType
           + " multi-thread:"+CustomAmmoCategories.Settings.AIPathingMultithread
-          + " elapsed:" + GetSampledPathNodes_timer.ElapsedMilliseconds+" ms"
+          + " elapsed:" + GetSampledPathNodes_timer.Elapsed.TotalMilliseconds+" ms"
           + " result:" +__result.Count,true);
         if (Thread.CurrentThread.isFlagSet(LIMIT_PATHING_SAMPLES) == false) {
           //Log.P?.TWL(0, "PathNodeGrid.GetSampledPathNodes NOT AI GENERATION " + ___owningActor.PilotableActorDef.ChassisID + " moveType:" + ___moveType + " result:" + __result.Count, true);

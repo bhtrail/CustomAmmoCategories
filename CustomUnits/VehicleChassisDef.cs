@@ -32,6 +32,7 @@ using CustomAmmoCategoriesPatches;
 using HBS.Collections;
 using System.Collections.Concurrent;
 using MessagePack;
+using CustAmmoCategoriesPatches;
 
 namespace CustomUnits {
   [MessagePackObject]
@@ -935,17 +936,6 @@ namespace CustomUnits {
   [HarmonyPatch(MethodType.Normal)]
   [HarmonyPatch(new Type[] { typeof(DesignMaskDef), typeof(int) })]
   public static class AbstractActor_ApplyDesignMaskStickyEffect {
-    public static bool Prefix(AbstractActor __instance,ref DesignMaskDef mask, int stackItemUID) {
-      Log.LogWrite(0, "AbstractActor.ApplyDesignMaskStickyEffect prefx " + __instance.DisplayName + ":" + __instance.GUID, true);
-      try {
-        if (__instance.UnaffectedDesignMasks()) {
-          mask = null;
-        }
-      } catch (Exception e) {
-        Log.LogWrite(e.ToString() + "\n", true);
-      }
-      return true;
-    }
   }
   [HarmonyPatch(typeof(AbstractActor))]
   [HarmonyPatch("SetOccupiedDesignMask")]
