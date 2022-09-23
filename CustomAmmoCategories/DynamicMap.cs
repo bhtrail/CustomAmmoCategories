@@ -947,9 +947,11 @@ namespace CustAmmoCategories {
     }
   }
   public class MapTerrainDataCellEx : MapTerrainDataCell {
+    public static bool ApplyPendingMasks { get; set; } = false;
     public int x;
     public int y;
     public float realTerrainHeight;
+    public TerrainMaskFlags pendingMasks;
     //public float RealHeight;
     public bool waterLevelCached;
     public bool wasForest;
@@ -1274,10 +1276,14 @@ namespace CustAmmoCategories {
           if (DynamicMapHelper.loadedMasksDef.ContainsKey(CustomAmmoCategories.Settings.BurnedForestDesignMask) == true) {
             this.AddTerrainMask(TerrainMaskFlags.Custom);
             this.CustomDesignMask = DynamicMapHelper.loadedMasksDef[CustomAmmoCategories.Settings.BurnedForestDesignMask];
+            if (CombatHUDMiniMap.instance != null) { CombatHUDMiniMap.instance.AddBurned(this); }
           }
         } else {
           this.AddTerrainMask(TerrainMaskFlags.Forest);
+          if (CombatHUDMiniMap.instance != null) { CombatHUDMiniMap.instance.AddRestore(this); }
         }
+      } else {
+        if (CombatHUDMiniMap.instance != null) { CombatHUDMiniMap.instance.AddRestore(this); }
       }
       this.ReconstructTempDesignMask();
     }
@@ -1290,19 +1296,11 @@ namespace CustAmmoCategories {
       }
     }
     public void burn(Weapon weapon, int counter, int strength) {
-      /*foreach(int treeIndex in this.trees) {
-        TreeInstance tree = Terrain.activeTerrain.terrainData.treeInstances[treeIndex];
-        tree.widthScale = 0f;
-        tree.heightScale = 0f;
-        Terrain.activeTerrain.terrainData.SetTreeInstance(treeIndex,tree);
-      }*/
-      //Terrain.activeTerrain.terrainData.treeInstances = new TreeInstance[0] { };
       CustomAmmoCategoriesLog.Log.LogWrite("burn cell " + this.x + ":" + this.y + ": is forest: " + SplatMapInfo.IsForest(this.terrainMask) + " cantforest:" + this.CantHaveForest + " trees count:" + this.trees.Count + "\n");
       if (SplatMapInfo.IsForest(this.terrainMask)) {
         if (this.CantHaveForest) {
           if ((counter > 0) && (strength > 0)) {
             this.BurningWeapon = weapon;
-            //this.wasForest = false;
             this.wasForest = true;
             this.wasCustom = false;
             this.wasRoad = false;
@@ -1344,6 +1342,7 @@ namespace CustAmmoCategories {
         this.BurningCounter = counter;
         this.BurningStrength = strength;
       }
+      if(CombatHUDMiniMap.instance != null) { CombatHUDMiniMap.instance.AddBurning(this); }
     }
     public AudioSwitch_surface_type GetAudioSurfaceTypeEx() {
       TerrainMaskFlags terrainMaskFlags = MapMetaData.GetPriorityTerrainMaskFlags(this);
@@ -1543,23 +1542,16 @@ namespace CustAmmoCategories {
       return result;
     }
     public static void ClearTerrain() {
-      CustomAmmoCategoriesLog.Log.LogWrite("ClearTerrain\n");
+      CustomAmmoCategoriesLog.Log.M?.TWL(0,"ClearTerrain");
       DynamicMapHelper.burningHexes.Clear();
       DynamicMapHelper.tempEffectHexes.Clear();
       DynamicMapHelper.tempMaskCells.Clear();
       try {
         if (DynamicMapHelper.hexGrid != null) {
-          //int hmax = DynamicMapHelper.hexGrid.GetLength(0);
-          //int hmay = DynamicMapHelper.hexGrid.GetLength(1);
-          //CustomAmmoCategoriesLog.Log.LogWrite(" size:" + hmax + "x" + hmay + "\n");
           CustomAmmoCategoriesLog.Log.LogWrite(" size:" + DynamicMapHelper.hexGrid.Count + "\n");
-          //for (int hx = 0; hx < hmax; ++hx) {
           {
-            //for (int hy = 0; hy < hmay; ++hy) {
             foreach(var vhcell in DynamicMapHelper.hexGrid) {
-              //CustomAmmoCategoriesLog.Log.LogWrite("  hex:" + hx + ":" + hy + "\n");
                 try {
-                //MapTerrainHexCell hcell = DynamicMapHelper.hexGrid[hx, hy];
                 MapTerrainHexCell hcell = vhcell.Value;//DynamicMapHelper.hexGrid[hx, hy];
                 if (hcell == null) {
                   CustomAmmoCategoriesLog.Log.LogWrite("  hex cell is null\n");
@@ -1567,11 +1559,9 @@ namespace CustAmmoCategories {
                 }
                 hcell.clearTempVFXs();
                 if (hcell.burnEffect == null) {
-                  //CustomAmmoCategoriesLog.Log.LogWrite("  no terrain effect ever setted. No clean needed\n");
                   continue;
                 }
                 if (hcell.burnEffect.spawnedObject == null) {
-                  //CustomAmmoCategoriesLog.Log.LogWrite("  already clean\n");
                   continue;
                 }
                 hcell.burnEffect.CleanupSelf();
@@ -1607,21 +1597,6 @@ namespace CustAmmoCategories {
           CustomAmmoCategoriesLog.Log.LogWrite("  hex found\n");
           if (hexNear.TryExpand(hex.burningWeapon)) { DynamicMapHelper.burningHexes.Add(hexNear); }
         }
-        /*int hx = hex.x;
-        int hy = hex.y;
-        CustomAmmoCategoriesLog.Log.LogWrite(" expanding:" + hx + ":" + hy + "\n");
-        if (hx > 0) {
-          if (DynamicMapHelper.hexGrid[hx - 1, hy].TryExpand(hex.burningWeapon)) { DynamicMapHelper.burningHexes.Add(DynamicMapHelper.hexGrid[hx - 1, hy]); }
-          if (hy > 0) { if (DynamicMapHelper.hexGrid[hx - 1, hy - 1].TryExpand(hex.burningWeapon)) { DynamicMapHelper.burningHexes.Add(DynamicMapHelper.hexGrid[hx - 1, hy - 1]); }; };
-        }
-        if (hy > 0) { if (DynamicMapHelper.hexGrid[hx, hy - 1].TryExpand(hex.burningWeapon)) { DynamicMapHelper.burningHexes.Add(DynamicMapHelper.hexGrid[hx, hy - 1]); }; };
-        if (hx < (DynamicMapHelper.hexGrid.GetLength(0) - 1)) {
-          if (DynamicMapHelper.hexGrid[hx + 1, hy].TryExpand(hex.burningWeapon)) { DynamicMapHelper.burningHexes.Add(DynamicMapHelper.hexGrid[hx + 1, hy]); };
-          if (hy > 0) { if (DynamicMapHelper.hexGrid[hx + 1, hy - 1].TryExpand(hex.burningWeapon)) { DynamicMapHelper.burningHexes.Add(DynamicMapHelper.hexGrid[hx + 1, hy - 1]); }; };
-        }
-        if (hy < (DynamicMapHelper.hexGrid.GetLength(1) - 1)) {
-          if (DynamicMapHelper.hexGrid[hx, hy + 1].TryExpand(hex.burningWeapon)) { DynamicMapHelper.burningHexes.Add(DynamicMapHelper.hexGrid[hx, hy + 1]); }
-        }*/
       }
       HashSet<MapTerrainHexCell> cleanTrees = new HashSet<MapTerrainHexCell>();
       for (int index = 0; index < DynamicMapHelper.burningHexes.Count;) {
@@ -1660,21 +1635,18 @@ namespace CustAmmoCategories {
         DynamicMapHelper.tempMaskCells.Remove(dp);
       }
     }
-    public static void initHexGrid(MapMetaData mapMetaData) {
+    public static void initHexGrid(MapMetaData mapMetaData, HexGrid hexGrid) {
       DynamicMapHelper.mapMetaData = mapMetaData;
-      //int hexStepX = (CustomAmmoCategories.Settings.BurningForestCellRadius * 3) / 2 + 1;
-      //int hexStepY = Mathf.RoundToInt((float)CustomAmmoCategories.Settings.BurningForestCellRadius * 0.866025f);
-      //List<MapPoint> hexPattern = MapPoint.createHexagon(0, 0, CustomAmmoCategories.Settings.BurningForestCellRadius);
       DynamicMapHelper.CurrentBiome = "";
       try {
-        DynamicMapHelper.CurrentBiome = mapMetaData.biomeDesignMask.Description.Id;
+        DynamicMapHelper.CurrentBiome = Traverse.Create(mapMetaData).Field<string>("biomeDesignMaskName").Value;
       } catch (Exception) {
         DynamicMapHelper.CurrentBiome = "NotSet";
       }
       bool noForest = CustomAmmoCategories.Settings.NoForestBiomes.Contains(DynamicMapHelper.CurrentBiome);
-      Log.M.TWL(0,"Map biome:" + DynamicMapHelper.CurrentBiome + " noForest:" + noForest+" hex grid:"+(UnityGameInstance.BattleTechGame.Combat.HexGrid == null?"null":"not null"));
+      Log.M.TWL(0,"Map biome:" + DynamicMapHelper.CurrentBiome + " noForest:" + noForest+" hex grid:"+(hexGrid == null?"null":"not null"));
       //Log.LogWrite(" stack:" + Environment.StackTrace + "\n");
-      HexGrid hexGrid = UnityGameInstance.BattleTechGame.Combat.HexGrid;
+      //HexGrid hexGrid = UnityGameInstance.BattleTechGame.Combat.HexGrid;
       DynamicMapHelper.hexGrid = new Dictionary<Vector3, MapTerrainHexCell>();
       for (int mx = 0; mx < mapMetaData.mapTerrainDataCells.GetLength(0); ++mx) {
         for (int my = 0; my < mapMetaData.mapTerrainDataCells.GetLength(1); ++my) {
@@ -1696,57 +1668,6 @@ namespace CustAmmoCategories {
           }
         }
       }
-      //int hex_x = mapMetaData.mapTerrainDataCells.GetLength(0) / hexStepX;
-      //if ((mapMetaData.mapTerrainDataCells.GetLength(0) % hexStepX) != 0) { ++hex_x; }
-      //int hex_y = mapMetaData.mapTerrainDataCells.GetLength(1) / ((hexStepY * 2) - 1);
-      //if ((mapMetaData.mapTerrainDataCells.GetLength(1) % ((hexStepY * 2) - 1)) != 0) { ++hex_y; }
-      //DynamicMapHelper.hexGrid = new MapTerrainHexCell[hex_x, hex_y];
-      //for (int hix = 0; hix < hex_x; ++hix) {
-      //  for (int hiy = 0; hiy < hex_y; ++hiy) {
-      //    int hx = hix * hexStepX;
-      //    int hy = hiy * hexStepY * 2 + (hx % 2) * hexStepY;
-      //    MapTerrainHexCell hexCell = new MapTerrainHexCell();
-      //    DynamicMapHelper.hexGrid[hix, hiy] = hexCell;
-      //    hexCell.x = hix;
-      //    hexCell.y = hiy;
-      //    hexCell.mapX = hx;
-      //    hexCell.mapY = hy;
-      //    foreach (MapPoint hp in hexPattern) {
-      //      int mx = hp.x + hx;
-      //      int my = hp.y + hy;
-      //      if (mx < 0) { continue; }
-      //      if (my < 0) { continue; }
-      //      if (mx >= mapMetaData.mapTerrainDataCells.GetLength(0)) { continue; }
-      //      if (my >= mapMetaData.mapTerrainDataCells.GetLength(1)) { continue; }
-      //      MapTerrainDataCellEx cell = mapMetaData.mapTerrainDataCells[mx, my] as MapTerrainDataCellEx;
-      //      if (cell == null) { continue; };
-      //      cell.hexCell = hexCell;
-      //    }
-      //  }
-      //}
-      /*for (int mx = 0; mx < mapMetaData.mapTerrainDataCells.GetLength(0); ++mx) {
-        for (int my = 0; my < mapMetaData.mapTerrainDataCells.GetLength(1); ++my) {
-          MapTerrainDataCellEx cell = mapMetaData.mapTerrainDataCells[mx, my] as MapTerrainDataCellEx;
-          if (cell == null) { continue; };
-          if (cell.hexCell == null) {
-            CustomAmmoCategoriesLog.Log.LogWrite("MapCell " + mx + ":" + my + " has no hex sell\n", true);
-            continue;
-          }
-          cell.hexCell.terrainCells.Add(cell);
-          if (noForest) {
-            cell.hexCell.isHasForest = false; cell.hexCell.wasHasForest = false; cell.CantHaveForest = true;
-          } else {
-            if (SplatMapInfo.IsForest(cell.terrainMask) == true) { cell.hexCell.isHasForest = true; cell.hexCell.wasHasForest = true; cell.CantHaveForest = false; };
-          }
-        }
-      }*/
-      //CustomAmmoCategoriesLog.Log.LogWrite("Hex Map:\n");
-      //for (int hx = 0; hx < DynamicMapHelper.hexGrid.GetLength(0); ++hx) {
-        //for (int hy = 0; hy < DynamicMapHelper.hexGrid.GetLength(1); ++hy) {
-          //CustomAmmoCategoriesLog.Log.LogWrite((DynamicMapHelper.hexGrid[hx, hy].isHasForest ? "F" : "-"));
-        //}
-        //CustomAmmoCategoriesLog.Log.LogWrite("\n");
-      //}
     }
     public static ObjectSpawnDataSelf SpawnFXObject(CombatGameState Combat, string prefabName, Vector3 pos, Vector3 scale) {
       ObjectSpawnDataSelf objectSpawnData = new ObjectSpawnDataSelf(prefabName, pos, Quaternion.identity, scale, true, false);
@@ -2064,12 +1985,14 @@ namespace CustomAmmoCategoriesPatches {
   [HarmonyPatch(new Type[] { typeof(MapTerrainDataCell) })]
   public static class MapMetaData_GetPriorityDesignMask {
     private static void Postfix(MapMetaData __instance, MapTerrainDataCell cell, ref DesignMaskDef __result) {
-      try { 
+      try {
+        MapTerrainDataCellEx excell = cell as MapTerrainDataCellEx;
+        if(excell != null)
         if (Thread.CurrentThread.isFlagSet(ActorMovementSequence_UpdateSticky.HIDE_DESIGN_MASK_FLAG)) {
+          //Log.M?.TWL(0, "MapMetaData.GetPriorityDesignMask x:"+ excell?.x+" y:"+excell.y+" mask skipped");
           __result = null;
           return;
         }
-        MapTerrainDataCellEx excell = cell as MapTerrainDataCellEx;
         if (excell != null) {
           if (excell.tempDesignMask != null) {
             __result = excell.tempDesignMask;
@@ -2144,13 +2067,21 @@ namespace CustomAmmoCategoriesPatches {
       DynamicMapHelper.LoadDesignMasks(dataManager);
     }
   }
-  [HarmonyPatch(typeof(HexGrid))]
-  [HarmonyPatch(MethodType.Constructor)]
-  [HarmonyPatch(new Type[] { typeof(CombatGameState) })]
-  public static class HexGrid_Constructor {
-    static void Postfix(HexGrid __instance, CombatGameState combat) {
-    }
-  }
+  //[HarmonyPatch(typeof(HexGrid))]
+  //[HarmonyPatch(MethodType.Constructor)]
+  //[HarmonyPatch(new Type[] { typeof(CombatGameState) })]
+  //public static class HexGrid_Constructor {
+  //  public static void Postfix(HexGrid __instance, CombatGameState combat) {
+  //    Log.M.TWL(0, "HexGrid.Constructor combat:"+(combat == null?"null":"not null"));
+  //    try {
+  //      if (combat != null) {
+  //        DynamicMapHelper.initHexGrid(combat.MapMetaData, __instance);
+  //      }
+  //    } catch(Exception e) {
+  //      Log.M?.TWL(0,e.ToString(),true);
+  //    }
+  //  }
+  //}
   [HarmonyPatch(typeof(MapMetaData))]
   [HarmonyPatch("Load")]
   [HarmonyPatch(MethodType.Normal)]
@@ -2180,6 +2111,7 @@ namespace CustomAmmoCategoriesPatches {
       int xmax = __instance.mapTerrainDataCells.GetLength(0);
       int ymax = __instance.mapTerrainDataCells.GetLength(1);
       CustomAmmoCategoriesLog.Log.LogWrite("MapMetaData.Load " + xmax + " X " + ymax + " \n");
+      Log.M?.WL(0,Environment.StackTrace);
       for (int x = 0; x < xmax; ++x) {
         for (int y = 0; y < ymax; ++y) {
           MapTerrainDataCellEx ecell = __instance.mapTerrainDataCells[x, y] as MapTerrainDataCellEx;
@@ -2187,13 +2119,15 @@ namespace CustomAmmoCategoriesPatches {
             ecell.x = x;
             ecell.y = y;
             ecell.realTerrainHeight = ecell.terrainHeight;
+            ecell.pendingMasks = ecell.terrainMask;
           }
         }
       }
+      CACMain.Core.Call_MapMetadata_Load_Postfixes(__instance);
       if (Terrain.activeTerrain == null) {
         CustomAmmoCategoriesLog.Log.LogWrite(" active terrain is null \n");
       } else {
-        DynamicMapHelper.initHexGrid(__instance);
+        DynamicMapHelper.initHexGrid(__instance, UnityGameInstance.BattleTechGame.Combat.HexGrid);
       }
     }
   }

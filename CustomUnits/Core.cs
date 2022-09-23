@@ -208,6 +208,8 @@ namespace CustomUnits{
     public float DeployLabelHeight { get; set; }
     public float DeployLabelFontSize { get; set; }
     public bool DeployManual { get; set; }
+    public bool DeployManualSpawnProtection { get; set; } = true;
+    public bool DeployAutoSpawnProtection { get; set; } = true;
     public bool AskForDeployManual { get; set; } = true;
     private HashSet<string> fManualDeployForbidContractTypes { get; set; }
     public List<string> ManualDeployForbidContractTypes {
@@ -301,6 +303,14 @@ namespace CustomUnits{
     public string DefaultMeleeDefinition { get; set; } = "Weapon_MeleeAttack";
     public string DefaultDFADefinition { get; set; } = "Weapon_DFAAttack";
     public string DefaultAIImaginaryDefinition { get; set; } = "Weapon_Laser_AI_Imaginary";
+    public HashSet<string> forceToBuildinShadersList { get; set; } = new HashSet<string>() { "Legacy Shaders/Particles/Alpha Blended Premultiply", "Mobile/Particles/Additive", "Particles/Alpha Blended" };
+    public Dictionary<string, string> shadersReplacementList { get; set; } = new Dictionary<string, string>() { { "Mobile/Particles/Additive", "Legacy Shaders/Particles/Alpha Blended Premultiply" } };
+    [JsonIgnore]
+    public Dictionary<string, Shader> forceToBuildinShaders { get; set; } = new Dictionary<string, Shader>();
+    public string IntelCompanyStatShowMood { get; set; } = "Intel_Show_Mood";
+    public string IntelCompanyStatShowMiniMap { get; set; } = "Intel_Show_Minimap";
+    public bool IntelShowMood { get; set; } = false;
+    public bool IntelShowMiniMap { get; set; } = false;
     public CUSettings() {
       debugLog = false;
       DeathHeight = 1f;
@@ -706,6 +716,16 @@ namespace CustomUnits{
                 Log.WL(0, e.ToString(), true);
               }
             }
+          } else if (customResource.Key == "CustomWeatherEffect") {
+            foreach (var custItem in customResource.Value) {
+              try {
+                Log.WL(1, "Path:" + custItem.Value.FilePath);
+                IntelHelper.AddMood(custItem.Key, custItem.Value);
+              } catch (Exception e) {
+                Log.TWL(0, custItem.Key, true);
+                Log.WL(0, e.ToString(), true);
+              }
+            }
           } else {
             throw new Exception("Unknown resource "+ customResource.Key);
           }
@@ -729,12 +749,33 @@ namespace CustomUnits{
           Log.WL(2, patch.owner + " index:" + patch.index + " method:" + patch.patch.Name);
         }
         Core.HarmonyInstance.Patch(typeof(Mech).GetMethod("DamageLocation", BindingFlags.NonPublic | BindingFlags.Instance), new HarmonyMethod(typeof(CustomMech).GetMethod(nameof(CustomMech.DamageLocation_Override), BindingFlags.Static | BindingFlags.Public)));
+        Core.HarmonyInstance.Patch(TrooperSquad.Pilot_IsIncapacitated_get(), null, TrooperSquad.Pilot_IsIncapacitated_get_patch());
+        //Core.HarmonyInstance.Patch(Contract_BeginRequestResources_Intel.TargetMethod(), Contract_BeginRequestResources_Intel.Patch());
         CustomDeploy.Core.FinishLoading();
       } catch (Exception e) {
         Log.TWL(0, e.ToString(), true);
       }
     }
     public static HarmonyInstance HarmonyInstance = null;
+    public static void LoadBuildinShaders() {
+      Log.TWL(0,"Loading buildin shaders");
+      foreach (string shaderName in Core.Settings.forceToBuildinShadersList) {
+        Shader shader = Shader.Find(shaderName);
+        if (shader != null) {
+          Core.Settings.forceToBuildinShaders.Add(shaderName, shader);
+          Log.WL(1, $"shader found {shader.name}:{shader.GetInstanceID()}");
+        } else {
+          Log.WL(1, $"shader not found {shaderName}");
+        }
+      }
+      foreach(var repShader in Core.Settings.shadersReplacementList) {
+        if (Core.Settings.forceToBuildinShaders.ContainsKey(repShader.Key)) { continue; }
+        if(Core.Settings.forceToBuildinShaders.TryGetValue(repShader.Value,out var shader)) {
+          Log.WL(1, $"shader replaced {repShader.Key} -> {shader.name}:{shader.GetInstanceID()}");
+          Core.Settings.forceToBuildinShaders.Add(repShader.Key, shader);
+        }
+      }
+    }
     public static void Init(string directory, string settingsJson) {
       Log.BaseDirectory = directory;
       Log.InitLog();
@@ -742,7 +783,12 @@ namespace CustomUnits{
       Core.Settings = JsonConvert.DeserializeObject<CustomUnits.CUSettings>(settingsJson);
 
       //PilotingClass.Validate();
-      Log.TWL(0,"Initing... " + directory + " version: " + Assembly.GetExecutingAssembly().GetName().Version + "\n", true);
+      Log.TWL(0,"Initing... " + directory + " version: " + Assembly.GetExecutingAssembly().GetName().Version, true);
+      LoadBuildinShaders();
+      Vector3 pos = new Vector3(-7.6f, 96.5f, 0f);
+      Vector3 look = new Vector3(-1.9f, 96.5f, 0f);
+      Vector3 diff = look - pos;
+      Log.WL(1,$"look:{look} pos:{pos} forward:{diff} backrot:{Quaternion.LookRotation(diff,Vector3.back).eulerAngles} fwdrot:{Quaternion.LookRotation(diff, Vector3.forward).eulerAngles} uprot:{Quaternion.LookRotation(diff, Vector3.up).eulerAngles} downrot:{Quaternion.LookRotation(diff, Vector3.down).eulerAngles}");
       Log.WL(1,"Core.Settings.weaponPrefabMappings");
       foreach (var mapping in Core.Settings.weaponPrefabMappings) {
         Log.W(2, mapping.Key);
