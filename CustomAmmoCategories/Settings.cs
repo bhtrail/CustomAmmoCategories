@@ -298,6 +298,10 @@ namespace CustAmmoCategories {
     [GameplaySafe]
     public bool EnableMinimap { get; set; } = true;
     [GameplaySafe]
+    public bool MinimapShowRegions { get; set; } = true;
+    [GameplaySafe]
+    public bool MinimapShowObjectives { get; set; } = true;
+    [GameplaySafe]
     public string MinimapBurnigTerrainColor { get; set; } = "#FF9700FF";
     [GameplaySafe]
     public string MinimapBurnedTerrainColor { get; set; } = "#FFFFFFFF";
@@ -329,6 +333,10 @@ namespace CustAmmoCategories {
     [GameplaySafe]
     public string StatisticOnResultScreenBattleArmorSprite { get; set; } = "battle_armor_unit_result_stat";
     public bool SpawnProtectionAffectsAOE { get; set; } = true;
+    public bool SpawnProtectionAffectsMinelayers { get; set; } = true;
+    public bool SpawnProtectionAffectsDesignMasks { get; set; } = true;
+    public bool SpawnProtectionAffectsBurningTerrain { get; set; } = true;
+    public bool SpawnProtectionAffectsCanFire { get; set; } = true;
     public Settings() {
       //directory = string.Empty;
       //debugLog = true;
