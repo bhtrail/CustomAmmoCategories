@@ -65,13 +65,13 @@
       <HintPath>$(BattleTechGameDir)\Mods\CustomPrewarm\CustomPrewarm.dll</HintPath>
     </Reference>
     <Reference Include="CustomVoices">
-      <HintPath>$(BattleTechGameDir)\Mods\Core\CustomVoices\CustomVoices.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\Mods\CustomVoices\CustomVoices.dll</HintPath>
     </Reference>
     <Reference Include="Dapper.Unity">
       <HintPath>$(BattleTechGameDir)\BattleTech_Data\Managed\Dapper.Unity.dll</HintPath>
     </Reference>
     <Reference Include="EPPlus">
-      <HintPath>$(BattleTechGameDir)\Mods\\CustomLocalization\EPPlus.dll</HintPath>
+      <HintPath>$(BattleTechGameDir)\Mods\CustomLocalization\EPPlus.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="InControl, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
