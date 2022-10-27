@@ -68,8 +68,17 @@ namespace CustAmmoCategories {
       this.fireCompleteStopEvent = original.fireCompleteStopEvent;
       //this.nextFloatie = 0.0f;
     }
+    public override void SetupCustomSettings() {
+      this.customPrefireSFX = this.preFireSFX;
+      this.preFireStartSFX = string.Empty;
+      this.preFireStopSFX = string.Empty;
+      this.customPulseSFXdelay = 0f;
+      this.customPulseSFX = string.Empty;
+    }
+
     public override void Fire(WeaponHitInfo hitInfo, int hitIndex = 0, int emitterIndex = 0) {
       Log.LogWrite("MultiShotBurstBallisticEffect.Fire " + hitInfo.attackWeaponIndex + " " + hitIndex + " emitter:" + emitterIndex + " ep:" + hitInfo.hitPositions[hitIndex] + "\n");
+      this.SetupCustomSettings();
       if (hitInfo.DidShotHitChosenTarget(hitIndex))
         this.projectilePrefab = this.accurateProjectilePrefab;
       else
@@ -132,14 +141,18 @@ namespace CustAmmoCategories {
 #else
     protected override void Update() {
 #endif
-      base.Update();
-      if (this.currentState != WeaponEffect.WeaponEffectState.Firing || (double)this.t < 1.0)
-        return;
-      for (int index = 0; index < this.hitInfo.numberOfShots; ++index) {
-        this.hitIndex = index;
-        this.PlayImpact();
+      try {
+        base.Update();
+        if (this.currentState != WeaponEffect.WeaponEffectState.Firing || (double)this.t < 1.0)
+          return;
+        for (int index = 0; index < this.hitInfo.numberOfShots; ++index) {
+          this.hitIndex = index;
+          this.PlayImpact();
+        }
+        this.OnComplete();
+      }catch(Exception e) {
+        Log.M?.TWL(0, e.ToString());
       }
-      this.OnComplete();
     }
     protected override void OnPreFireComplete() {
       base.OnPreFireComplete();
