@@ -34,7 +34,8 @@ namespace CustAmmoCategories {
     public string VFX { get; set; } = string.Empty;
     [Key(1)]
     public float duration { get; set; } = 0f;
-
+    [Key(2)]
+    public float scale { get; set; } = 1f;
   }
   [MessagePackObject]
   public class DeferredEffectDef {
@@ -445,7 +446,7 @@ namespace CustAmmoCategories {
     public float DirectFireModifierStat(Weapon weapon) { return weapon.GetStatisticFloat(nameof(DirectFireModifier)); }
     public float DirectFireModifierMod(Weapon weapon) { return weapon.GetStatisticMod(nameof(DirectFireModifier)); }
     [JsonIgnore, SkipDocumentation, Key(4)]
-    public string baseModeId { get; set; } = WeaponMode.BASE_MODE_NAME;
+    public string baseModeId { get; set; } = WeaponMode.NONE_MODE_NAME;
     [Key(5)]
     public float FlatJammingChance { get; set; } = 0f;
     [Key(6)]
@@ -797,6 +798,15 @@ namespace CustomAmmoCategoriesPatches {
             if (mode.isBaseMode == true) { extDef.baseModeId = mode.Id; }
           }
         }
+        if ((defTemp["ChassisTagsAccuracyModifiers"] != null) && (defTemp[nameof(ExtWeaponDef.TagsAccuracyModifiers)] == null)) {
+          extDef.TagsAccuracyModifiers = defTemp["ChassisTagsAccuracyModifiers"].ToObject<Dictionary<string, float>>();
+          //JsonConvert.DeserializeObject<Dictionary<string, float>>(jWeaponMode["ChassisTagsAccuracyModifiers"].ToString());
+          Log.LogWrite((string)(string)defTemp["Description"]["Id"] + " ChassisTagsAccuracyModifiers:\n");
+          foreach (var tam in extDef.TagsAccuracyModifiers) {
+            Log.LogWrite(" " + tam.Key + ":" + tam.Key);
+          }
+        }
+
         foreach (PropertyInfo prop in ExtWeaponDef_properties) {
           if (defTemp[prop.Name] == null) { continue; }
           if (prop.PropertyType == typeof(TripleBoolean)) {
@@ -804,7 +814,7 @@ namespace CustomAmmoCategoriesPatches {
           } 
         }
 
-        if (extDef.baseModeId == WeaponMode.NONE_MODE_NAME) {
+        if ((extDef.baseModeId == WeaponMode.NONE_MODE_NAME) || (extDef.Modes.Count == 0) || (extDef.Modes.ContainsKey(extDef.baseModeId) == false)) {
           WeaponMode mode = new WeaponMode();
           mode.Id = WeaponMode.BASE_MODE_NAME;
           mode.AmmoCategory = extDef.AmmoCategory;
@@ -819,7 +829,7 @@ namespace CustomAmmoCategoriesPatches {
           }
         }
 
-        Log.M?.WL(0, JsonConvert.SerializeObject(extDef, Formatting.Indented));
+        //Log.M?.WL(0, JsonConvert.SerializeObject(extDef, Formatting.Indented));
 
         HashSet<string> deleteFields = new HashSet<string>();
         foreach (var jsonField in defTemp) {
