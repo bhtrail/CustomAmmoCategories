@@ -366,7 +366,7 @@ namespace CustomUnits {
           //Log.WL(1, "location widget:" +(locationWidget == null?"null":locationWidget.gameObject.name));
           ListElementController_BASE_NotListView foundItem = null;
           //Log.WL(1, "searching:" + this.inventory.Count);
-          foreach (ListElementController_BASE_NotListView invItem in MechLabFixFeature.state.rawInventory) {
+          foreach (ListElementController_BASE_NotListView invItem in MechLabFixPublic.RawInventory) {
             if (invItem.componentDef == null) { /*Log.WL(2, invItem.GetType().Name + " has no componentDef");*/ continue; }
             //Log.WL(2, invItem.componentDef.Description.Id + ":"+ invItem.quantity);
             if (invItem.quantity <= 0) { continue; }
