@@ -858,7 +858,7 @@ namespace CustomUnits {
       int layerMask = LayerMask.GetMask("Terrain", "Obstruction");
       if (water) { layerMask = LayerMask.GetMask("Terrain", "Obstruction", "Water"); }
       RaycastHit? result = new RaycastHit?();
-      RaycastHit[] raycastHitArray = Physics.RaycastAll(new Ray(position + Vector3.up * 20f, Vector3.down), 200f+this.HeightController.CurrentHeight, Traverse.Create(typeof(ActorMovementSequence)).Field<int>("ikLayerMask").Value);
+      RaycastHit[] raycastHitArray = Physics.RaycastAll(new Ray(position + Vector3.up * 20f, Vector3.down), 200f+this.HeightController.CurrentHeight, layerMask);
       HashSet<Collider> skipColliders = this.rootParentRepresentation.ownColliders;
       foreach (RaycastHit hit in raycastHitArray) {
         if (skipColliders.Contains(hit.collider)) { continue; }
@@ -870,7 +870,7 @@ namespace CustomUnits {
       return result;
     }
     public void AliginToTerrain(RaycastHit? rayhit, float deltaTime, bool water) {
-      Log.TWL(0, "ActorMovementSequence.AliginToTerrain " + this.parentMech.MechDef.ChassisID);
+      Log.TWL(0, $"ActorMovementSequence.AliginToTerrain {this.parentMech.MechDef.ChassisID} water:{water}");
       //if (Traverse.Create(typeof(ActorMovementSequence)).Field<int>("ikLayerMask").Value == 0) {
       //  Traverse.Create(typeof(ActorMovementSequence)).Field<int>("ikLayerMask").Value = LayerMask.GetMask("Terrain", "Obstruction");
       //}
@@ -925,6 +925,7 @@ namespace CustomUnits {
           this.AliginToWater(rayhit.mainRayHit, deltaT);
         }
       }
+      Log.WL(0, $"CustomMechRepresentation.UpdateRotation vehicleMovement:{vehicleMovement} aliginToTerrain:{aliginToTerrain} FlyingHeight:{this.parentCombatant.FlyingHeight()}");
       if (aliginToTerrain) {
         if (forward.sqrMagnitude > Core.Epsilon) {
           moveTransform.rotation = Quaternion.RotateTowards(moveTransform.rotation, Quaternion.LookRotation(forward), 180f * deltaT);
@@ -933,6 +934,7 @@ namespace CustomUnits {
       } else {
         if (forward.sqrMagnitude > Core.Epsilon) {
           moveTransform.LookAt(moveTransform.position + forward, Vector3.up);
+          this.j_Root.localRotation = Quaternion.identity;
         }
       }
     }

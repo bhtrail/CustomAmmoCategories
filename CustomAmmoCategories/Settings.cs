@@ -317,6 +317,7 @@ namespace CustAmmoCategories {
     [GameplaySafe]
     public bool AIPathingMultithread { get { return false; } set { } }
     public int AIPathingSamplesLimit { get; set; } = 120;
+    public int AIPathingSamplesTreshold { get; set; } = 200;
     public float AIMinefieldDamageTreshold { get; set; } = 0.1f;
     public float AIMinefieldIgnoreMoveDistance { get; set; } = 36f;
     public float AIMinefieldIgnorePosDelta { get; set; } = 5f;
@@ -423,6 +424,8 @@ namespace CustAmmoCategories {
     public float FleeMaxTonage { get; set; } = 3f;
     public float HexSizeForMods { get; set; } = 30f;
     public bool RestoreEjectedWeapons { get; set; } = true;
+    public string MapOnlineClientLink { get; set; } = "http://www.roguewar.org/playerlut?cId={0}";
+    public bool MapOnlineClientDrawWidget { get; set; } = true;
     public Settings() {
       //directory = string.Empty;
       //debugLog = true;

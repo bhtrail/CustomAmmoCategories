@@ -168,7 +168,7 @@ namespace CustAmmoCategories {
     }
     public void OnClicked() {
       Log.M?.TWL(0, "OnlineCareerIDWidget.OnClicked");
-      GenericPopup popup = GenericPopupBuilder.Create("ONLINE ID CLIPBOARD", $"What would you like to copy to clipboard?\nCAREER ID:{this.simGame.CAREER_ID()}\nCAREER LINK:http://www.roguewar.org/clientlut?cId={this.simGame.CAREER_ID()}")
+      GenericPopup popup = GenericPopupBuilder.Create("ONLINE ID CLIPBOARD", $"What would you like to copy to clipboard?\nCAREER ID:{this.simGame.CAREER_ID()}\nCAREER LINK:{(string.Format(CustomAmmoCategories.Settings.MapOnlineClientLink, this.simGame.CAREER_ID()))}")
         .AddButton("CLOSE", (Action)(() => {
         }), true, BTInput.Instance.Key_Escape())
         .AddButton("CAREER ID", (Action)(() => {
@@ -176,7 +176,7 @@ namespace CustAmmoCategories {
           Log.M?.TWL(0, $"OnlineCareerIDWidget.OnClicked CAREER_ID:{GUIUtility.systemCopyBuffer}");
         }), true, BTInput.Instance.Key_Return())
         .AddButton("CAREER LINK", (Action)(() => {
-          GUIUtility.systemCopyBuffer = $"http://www.roguewar.org/clientlut?cId={this.simGame.CAREER_ID()}";
+          GUIUtility.systemCopyBuffer = string.Format(CustomAmmoCategories.Settings.MapOnlineClientLink, this.simGame.CAREER_ID());
           Log.M?.TWL(0, $"OnlineCareerIDWidget.OnClicked CLIENT_ID:{GUIUtility.systemCopyBuffer}");
         }), true, BTInput.Instance.Key_None())
         .IsNestedPopupWithBuiltInFader().SetAlwaysOnTop().Render();
@@ -207,6 +207,7 @@ namespace CustAmmoCategories {
   [HarmonyPatch(new Type[] { typeof(string) })]
   public static class SGHeaderWidget_SetCompanyCrest {
     public static void Postfix(SGHeaderWidget __instance, SimGameState ___simState) {
+      if (CustomAmmoCategories.Settings.MapOnlineClientDrawWidget == false) { return; }
       Log.M?.TWL(0, "SGHeaderWidget.SetCompanyCrest");
       OnlineCareerIDWidget careerIDWidget = __instance.gameObject.GetComponentInChildren<OnlineCareerIDWidget>(true);
       if(careerIDWidget == null) {
@@ -221,6 +222,7 @@ namespace CustAmmoCategories {
   [HarmonyPatch(new Type[] { typeof(SimGameState) })]
   public static class SGHeaderWidget_Init {
     public static void Postfix(SGHeaderWidget __instance, SimGameState simGame) {
+      if (CustomAmmoCategories.Settings.MapOnlineClientDrawWidget == false) { return; }
       Log.M?.TWL(0, "SGHeaderWidget.Init");
       OnlineCareerIDWidget careerIDWidget = __instance.gameObject.GetComponentInChildren<OnlineCareerIDWidget>(true);
       if (careerIDWidget == null) {

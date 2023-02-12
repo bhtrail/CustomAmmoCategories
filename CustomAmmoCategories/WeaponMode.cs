@@ -149,7 +149,7 @@ namespace CustAmmoCategories {
 
   [SelfDocumentedClass("Weapons", "Weapons", "WeaponMode"), MessagePackObject]
   public class WeaponMode {
-    public static string BASE_MODE_NAME = "B";
+    public static string BASE_MODE_NAME = "BASE";
     public static string NONE_MODE_NAME = "!NONE!";
     [Key(0)]
     public string UIName { get; set; } = WeaponMode.BASE_MODE_NAME;
@@ -453,7 +453,7 @@ namespace CustAmmoCategories {
     public int AMSActivationsPerTurn { get; set; } = 0;
     [SelfDocumentationDefaultValue("empty"), SelfDocumentationTypeName("EvasivePipsMods structure"), Key(148)]
     public EvasivePipsMods hexesMovedMod { get; set; } = new EvasivePipsMods();
-    [Key(148)]
+    [Key(149)]
     public float RecoilJammingChance { get; set; } = 0f;
     private static List<PropertyInfo> json_properties = null;
     private static void fill_json_properties() {

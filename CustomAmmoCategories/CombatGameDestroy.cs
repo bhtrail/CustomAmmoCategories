@@ -33,6 +33,8 @@ namespace CustomAmmoCategoriesPatches {
             try { sp.CleanupSelf(); } finally { };
           }
         }
+        CustomAmmoCategories.ClearJammingInfo();
+        AIMaxWeaponRangeCache.Clear();
         CustomAmmoCategories.additinalImpactEffects.Clear();
         AMSWeaponEffectStaticHelper.Clear();
         DynamicMapHelper.ClearTerrain();

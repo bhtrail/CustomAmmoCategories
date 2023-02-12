@@ -1818,7 +1818,7 @@ namespace CustomUnits {
       FootstepManager.Instance.AddFootstep(position, forward, new Vector3(num1, num1, num1));
       string vfxName1 = string.Format("{0}{1}{2}{3}", (object)this.Constants.VFXNames.footfallBase, (object)(this.IsInAnyIdle ? "idle_" : ""), (object)this.rootParentRepresentation.terrainImpactParticleName, (object)this.rootParentRepresentation.vfxNameModifier);
       Log.TWL(0, $"TriggerCustomFootFall {this.chassisDef.Description.Id} {this.gameObject.name} {vfxName1}");
-      Log.WL(0, Environment.StackTrace);
+      //Log.WL(0, Environment.StackTrace);
       this.PlayVFXAt(foot, Vector3.zero, vfxName1, false, lookAtPos, true, -1f);
       if (this.currentSurfaceType == AudioSwitch_surface_type.wood)
         this.PlayVFX(8, "vfxPrfPrtl_envTreeRustle_vHigh", false, Vector3.zero, true, -1f);
@@ -2115,17 +2115,26 @@ namespace CustomUnits {
     public virtual void CompleteMove(Vector3 finalPos, Vector3 finalHeading, ActorMovementSequence sequence, bool playedMelee, ICombatant meleeTarget) {
       this.CompleteMove(sequence, playedMelee, meleeTarget);
       RaycastHit? raycast = new RaycastHit?();
-      if (this.parentActor.UnaffectedPathing() || (this.parentCombatant.FlyingHeight() > Core.Epsilon)) {
+      bool aliginToTerrain = false;
+      bool vehicleMovement = this.parentCombatant.NoMoveAnimation() || this.parentCombatant.FakeVehicle();
+      if (vehicleMovement && this.parentCombatant.FlyingHeight() < Core.Settings.MaxHoveringHeightWithWorkingJets) {
+        aliginToTerrain = true;
+      }
+      if (this.parentCombatant.NavalUnit() || (this.parentCombatant.FlyingHeight() > Core.Settings.MaxHoveringHeightWithWorkingJets)) {
         raycast = this.GetTerrainRayHit(finalPos, true);
       }
       if (raycast.HasValue) {
-        this.thisTransform.position = raycast.Value.point;
+        if (raycast.Value.point.y > finalPos.y) {
+          this.thisTransform.position = raycast.Value.point;
+        } else {
+          this.thisTransform.position = finalPos;
+        }
         this.thisTransform.rotation = Quaternion.LookRotation(finalHeading, Vector3.up);
       } else {
         this.thisTransform.position = finalPos;
         this.thisTransform.rotation = Quaternion.LookRotation(finalHeading, Vector3.up);
       }
-      if (this.custMech.isVehicle) {
+      if (aliginToTerrain) {
         this.AliginToTerrain(raycast, 100f, false);
       }
     }
