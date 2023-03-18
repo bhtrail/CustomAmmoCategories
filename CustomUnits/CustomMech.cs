@@ -12,7 +12,7 @@ using BattleTech;
 using BattleTech.Data;
 using CustAmmoCategories;
 using CustomDeploy;
-using Harmony;
+using HarmonyLib;
 using HBS.Collections;
 using IRBTModUtils;
 using Localize;
@@ -426,66 +426,66 @@ namespace CustomUnits {
     }
     private static MethodInfo Mech_InitGameRep = null;
     private static Patches Mech_InitGameRep_patches = null;
-    public virtual void MechInitGameRep_prefixes(Transform parentTransform) {
-      Log.TWL(0, "Mech.InitGameRep.prefixes");
-      if (Mech_InitGameRep == null) { Mech_InitGameRep = typeof(Mech).GetMethod("InitGameRep"); }
-      if (Mech_InitGameRep == null) {
-        Log.WL(1, "Can't find Mech.InitGameRep");
-        return;
-      }
-      if (Mech_InitGameRep_patches == null) {
-        Mech_InitGameRep_patches = Core.HarmonyInstance.GetPatchInfo(Mech_InitGameRep);
-      }
-      if (Mech_InitGameRep_patches == null) {
-        Log.WL(1, "Mech.InitGameRep has no patches");
-        return;
-      }
-      foreach (Patch patch in Mech_InitGameRep_patches.Prefixes) {
-        Log.WL(1, patch.owner + ":" + patch.patch.Name);
-        try {
-          List<object> methodParams = new List<object>();
-          foreach (var param in patch.patch.GetParameters()) {
-            if (param.Name == "__instance") { methodParams.Add(this); }
-            if (param.Name == "parentTransform") { methodParams.Add(parentTransform); }
-            if (param.Name.StartsWith("___")) { methodParams.Add(Traverse.Create(this).Field(param.Name.Substring(3)).GetValue()); }
-            Log.WL(2, param.Name + " is ref:" + param.GetType().IsByRef);
-          }
-          patch.patch.Invoke(null, methodParams.ToArray());
-        } catch (Exception e) {
-          Log.TWL(0, e.ToString(), true);
-        }
-      }
-    }
-    public virtual void MechInitGameRep_postfixes(Transform parentTransform) {
-      Log.TWL(0, "Mech.InitGameRep.postfixes");
-      if (Mech_InitGameRep == null) { Mech_InitGameRep = typeof(Mech).GetMethod("InitGameRep"); }
-      if (Mech_InitGameRep == null) {
-        Log.WL(1, "Can't find Mech.InitGameRep");
-        return;
-      }
-      if (Mech_InitGameRep_patches == null) {
-        Mech_InitGameRep_patches = Core.HarmonyInstance.GetPatchInfo(Mech_InitGameRep);
-      }
-      if (Mech_InitGameRep_patches == null) {
-        Log.WL(1, "Mech.InitGameRep has no patches");
-        return;
-      }
-      foreach (Patch patch in Mech_InitGameRep_patches.Postfixes) {
-        Log.WL(1, patch.owner + ":" + patch.patch.Name);
-        try {
-          List<object> methodParams = new List<object>();
-          foreach (var param in patch.patch.GetParameters()) {
-            if (param.Name == "__instance") { methodParams.Add(this); }
-            if (param.Name == "parentTransform") { methodParams.Add(parentTransform); }
-            if (param.Name.StartsWith("___")) { methodParams.Add(Traverse.Create(this).Field(param.Name.Substring(3)).GetValue()); }
-            Log.WL(2, param.Name + " is ref:" + param.GetType().IsByRef);
-          }
-          patch.patch.Invoke(null, methodParams.ToArray());
-        } catch (Exception e) {
-          Log.TWL(0, e.ToString(), true);
-        }
-      }
-    }
+    //public virtual void MechInitGameRep_prefixes(Transform parentTransform) {
+    //  Log.TWL(0, "Mech.InitGameRep.prefixes");
+    //  if (Mech_InitGameRep == null) { Mech_InitGameRep = typeof(Mech).GetMethod("InitGameRep"); }
+    //  if (Mech_InitGameRep == null) {
+    //    Log.WL(1, "Can't find Mech.InitGameRep");
+    //    return;
+    //  }
+    //  if (Mech_InitGameRep_patches == null) {
+    //    Mech_InitGameRep_patches = Core.HarmonyInstance.GetPatchInfo(Mech_InitGameRep);
+    //  }
+    //  if (Mech_InitGameRep_patches == null) {
+    //    Log.WL(1, "Mech.InitGameRep has no patches");
+    //    return;
+    //  }
+    //  foreach (Patch patch in Mech_InitGameRep_patches.Prefixes) {
+    //    Log.WL(1, patch.owner + ":" + patch.patch.Name);
+    //    try {
+    //      List<object> methodParams = new List<object>();
+    //      foreach (var param in patch.patch.GetParameters()) {
+    //        if (param.Name == "__instance") { methodParams.Add(this); }
+    //        if (param.Name == "parentTransform") { methodParams.Add(parentTransform); }
+    //        if (param.Name.StartsWith("___")) { methodParams.Add(Traverse.Create(this).Field(param.Name.Substring(3)).GetValue()); }
+    //        Log.WL(2, param.Name + " is ref:" + param.GetType().IsByRef);
+    //      }
+    //      patch.patch.Invoke(null, methodParams.ToArray());
+    //    } catch (Exception e) {
+    //      Log.TWL(0, e.ToString(), true);
+    //    }
+    //  }
+    //}
+    //public virtual void MechInitGameRep_postfixes(Transform parentTransform) {
+    //  Log.TWL(0, "Mech.InitGameRep.postfixes");
+    //  if (Mech_InitGameRep == null) { Mech_InitGameRep = typeof(Mech).GetMethod("InitGameRep"); }
+    //  if (Mech_InitGameRep == null) {
+    //    Log.WL(1, "Can't find Mech.InitGameRep");
+    //    return;
+    //  }
+    //  if (Mech_InitGameRep_patches == null) {
+    //    Mech_InitGameRep_patches = Core.HarmonyInstance.GetPatchInfo(Mech_InitGameRep);
+    //  }
+    //  if (Mech_InitGameRep_patches == null) {
+    //    Log.WL(1, "Mech.InitGameRep has no patches");
+    //    return;
+    //  }
+    //  foreach (Patch patch in Mech_InitGameRep_patches.Postfixes) {
+    //    Log.WL(1, patch.owner + ":" + patch.patch.Name);
+    //    try {
+    //      List<object> methodParams = new List<object>();
+    //      foreach (var param in patch.patch.GetParameters()) {
+    //        if (param.Name == "__instance") { methodParams.Add(this); }
+    //        if (param.Name == "parentTransform") { methodParams.Add(parentTransform); }
+    //        if (param.Name.StartsWith("___")) { methodParams.Add(Traverse.Create(this).Field(param.Name.Substring(3)).GetValue()); }
+    //        Log.WL(2, param.Name + " is ref:" + param.GetType().IsByRef);
+    //      }
+    //      patch.patch.Invoke(null, methodParams.ToArray());
+    //    } catch (Exception e) {
+    //      Log.TWL(0, e.ToString(), true);
+    //    }
+    //  }
+    //}
     public static bool InitGameRepStatic(Mech __instance, Transform parentTransform) {
       try {
         Log.TWL(0, "CustomMech.InitGameRepStatic " + __instance.MechDef.Description.Id + " " + __instance.GetType().Name);
@@ -753,9 +753,12 @@ namespace CustomUnits {
     public virtual Dictionary<int, float> GetAOESpreadArmorLocations() {
       return CustomAmmoCategories.NormMechHitLocations;
     }
-    public override void FlagForDeath(string reason,DeathMethod deathMethod,DamageType damageType,int location,int stackItemID,string attackerID,bool isSilent) {
+    public override void FlagForDeath(string reason, DeathMethod deathMethod,DamageType damageType,int location,int stackItemID,string attackerID,bool isSilent) {
       if (this._flaggedForDeath) { return; }
-      Log.TWL(0, "CustomMech.FlagForDeath " + reason + " method:" + deathMethod + " dmgType:" + damageType + " location:" + location);
+      Log.TWL(0, $"CustomMech.FlagForDeath {this.PilotableActorDef.ChassisID} {reason} method:{deathMethod} dmgType:{damageType} location:{location}");
+      if(deathMethod == DeathMethod.DespawnedEscaped) {
+        Log.WL(0, Environment.StackTrace);
+      }
       Thread.CurrentThread.pushActor(this);
       base.FlagForDeath(reason, deathMethod, damageType, location, stackItemID, attackerID, isSilent);
       Thread.CurrentThread.clearActor();
