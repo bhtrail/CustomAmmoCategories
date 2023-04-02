@@ -178,6 +178,7 @@ namespace CustomUnits {
     public CustomActorRepresentationDef CustomDefinition { get; protected set; }
     public Dictionary<string, AttachInfo> WeaponAttachPoints { get; protected set; } = new Dictionary<string, AttachInfo>();
     public HashSet<CustomRepresentationAnimatorInfo> animators { get; protected set; } = new HashSet<CustomRepresentationAnimatorInfo>();
+    public HashSet<HardPointAnimationController> hardpointsAnimators { get; protected set; } = new HashSet<HardPointAnimationController>();
     public HashSet<CustomTwistAnimatorInfo> twistAnimators { get; protected set; } = new HashSet<CustomTwistAnimatorInfo>();
     public bool HasTwistAnimators { get { return twistAnimators.Count > 0; } }
     public List<Transform> Headlights { get; protected set; }
@@ -202,7 +203,12 @@ namespace CustomUnits {
         animCompleete?.Invoke();
       }
     }
-    public bool InBattle { set { foreach (CustomRepresentationAnimatorInfo info in animators) { info.InBattle = value; } } }
+    public bool InBattle {
+      set {
+        foreach (CustomRepresentationAnimatorInfo info in animators) { info.InBattle = value; }
+        foreach (HardPointAnimationController info in hardpointsAnimators) { info.InBattle = value; }
+      }
+    }
     public bool InDropOff { set { foreach (CustomRepresentationAnimatorInfo info in animators) { info.DropOff = value; } } }
     public void Charge() { foreach (CustomRepresentationAnimatorInfo info in animators) { info.Charge(); } }
     public float Forward { set { foreach (CustomRepresentationAnimatorInfo info in animators) { info.Forward = value; } } }
@@ -226,6 +232,7 @@ namespace CustomUnits {
         Log.TWL(0, "CustomTwistAnimation.StartRandomIdle: " + value);
         if (value) { if (idleTimeElapsed.IsRunning == false) { idleTimeElapsed.Reset(); idleTimeElapsed.Start(); }; } else { idleTimeElapsed.Reset(); idleTimeElapsed.Stop(); }
         foreach (CustomTwistAnimatorInfo info in twistAnimators) { info.StartRandomIdle = value; }
+        foreach (HardPointAnimationController info in hardpointsAnimators) { info.StartRandomIdle = value; }
       }
     }
     public void Twist(float angle) {
@@ -252,6 +259,7 @@ namespace CustomUnits {
         foreach (CustomTwistAnimatorInfo info in twistAnimators) { info.StartRandomIdle = true; }
         isInIdleRotated = true;
       }
+      foreach (HardPointAnimationController info in hardpointsAnimators) { info.RandomIdle = value; }
       float angle = 0.0f;
       if (value == 0.6f) { angle = 0f; } else
       if (value == 0.7f) { angle = -0.3f; } else
@@ -489,7 +497,20 @@ namespace CustomUnits {
           try {
             Log.WL(1, "prefab " + weaponRep.weapon.mechComponentRef.prefabName);
             CustomHardpointDef customHardpoint = CustomHardPointsHelper.Find(weaponRep.weapon.mechComponentRef.prefabName);
-            if (customHardpoint == null) { Log.WL(3, "no custom hardpoint"); continue; }
+            if (customHardpoint == null) {
+              Log.WL(3, $"no custom hardpoint. parentTransform:{(weaponRep.parentTransform==null?"null": weaponRep.parentTransform.name)}");
+              if(weaponRep.parentTransform != null) {
+                foreach(var ap in this.WeaponAttachPoints) {
+                  if (ap.Value.attach == null) { continue; }
+                  if (ap.Value.attach == weaponRep.parentTransform) {
+                    Log.WL(3, $"found attach point:{ap.Key}");
+                    ap.Value.weapons.Add(weaponRep.weapon);
+                    break;
+                  }
+                }
+              }
+              continue;
+            }
             Log.WL(2, "attachType:" + customHardpoint.attachType + " attachOverride:" + customHardpoint.attachOverride);
             AttachInfo attachPoint = null;
             if (string.IsNullOrEmpty(customHardpoint.attachOverride) == false) {
@@ -510,6 +531,12 @@ namespace CustomUnits {
                 attachRep.Init(weaponRep, attachPoint);
                 if (weaponRep.weapon != null) { attachPoint.weapons.Add(weaponRep.weapon); }
               };
+            }
+            HardPointAnimationController animComponent = weaponRep.GetComponent<HardPointAnimationController>();
+            if (animComponent == null) {
+              animComponent = weaponRep.gameObject.AddComponent<HardPointAnimationController>(); animComponent.Init(weaponRep, customHardpoint);
+              animComponent.InBattle = true;
+              hardpointsAnimators.Add(animComponent);
             }
           } catch (Exception e) {
             Log.TWL(0, e.ToString(), true);
@@ -546,7 +573,20 @@ namespace CustomUnits {
             }
             Log.WL(1, "prefab " + prefab);
             CustomHardpointDef customHardpoint = CustomHardPointsHelper.Find(prefab);
-            if (customHardpoint == null) { Log.WL(3, "no custom hardpoint"); continue; }
+            if (customHardpoint == null) {
+              Log.WL(3, $"no custom hardpoint. parentTransform:{(compRep.parentTransform == null ? "null" : compRep.parentTransform.name)}");
+              if (compRep.parentTransform != null) {
+                foreach (var ap in this.WeaponAttachPoints) {
+                  if (ap.Value.attach == null) { continue; }
+                  if (ap.Value.attach == compRep.parentTransform) {
+                    Log.WL(3, $"found attach point:{ap.Key}");
+                    ap.Value.bayComponents.Add(compRep);
+                    break;
+                  }
+                }
+              }
+              continue;
+            }
             Log.WL(2, "attachType:" + customHardpoint.attachType + " attachOverride:" + customHardpoint.attachOverride);
             AttachInfo attachPoint = null;
             if (string.IsNullOrEmpty(customHardpoint.attachOverride) == false) {
@@ -565,20 +605,34 @@ namespace CustomUnits {
                 WeaponAttachRepresentation attachRep = compRep.gameObject.GetComponent<WeaponAttachRepresentation>();
                 if (attachRep == null) { attachRep = compRep.gameObject.AddComponent<WeaponAttachRepresentation>(); }
                 attachRep.Init(compRep, attachPoint);
+                attachPoint.bayComponents.Add(compRep);
 
                 //HACKY FIX: I'm not sure what KMission's intent with weapons was, but as far as I know they don't take paint.
                 //  Because of that, I'm disabling the paint patterns on them here. This prevents the 'corrupted texture' look in the mechbay.
-                CustomPaintPattern[] paintPatterns = attachRep.gameObject.GetComponentsInChildren<CustomPaintPattern>();
-                foreach (CustomPaintPattern cpp in paintPatterns)
-                {                    
+                CustomPaintPattern[] paintPatterns = attachRep.gameObject.GetComponentsInChildren<CustomPaintPattern>(true);
+                foreach (CustomPaintPattern cpp in paintPatterns) {
+                  if (cpp.is_custom == false) {
                     cpp._paintPatterns.Clear();
                     cpp._currentIndex = -1;
+                  }
                 }
               };
+            }
+            if (compRep is WeaponRepresentation weaponRep) {
+              HardPointAnimationController animComponent = weaponRep.GetComponent<HardPointAnimationController>();
+              if (animComponent == null) {
+                animComponent = weaponRep.gameObject.AddComponent<HardPointAnimationController>(); animComponent.Init(weaponRep, customHardpoint);
+                animComponent.InBattle = false;
+              }
             }
           } catch (Exception e) {
             Log.TWL(0, e.ToString(), true);
           }
+        }
+        foreach (var ap in this.WeaponAttachPoints) {
+          if (ap.Value.hideIfEmpty == false) { continue; }
+          if (ap.Value.main == null) { continue; }
+          if (ap.Value.bayComponents.Count == 0) { ap.Value.main.gameObject.SetActive(false); }
         }
       } catch (Exception e) {
         Log.TWL(0, e.ToString(), true);

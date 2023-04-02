@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using BattleTech;
+using BattleTech.Data;
 using CustAmmoCategories;
 using Newtonsoft.Json;
 using Unity;
@@ -30,7 +31,10 @@ namespace CustomUnits {
     public List<string> NotSuppressRenderers { get; private set; }
     public List<string> JumpJets { get; private set; }
     public List<string> HeadLights { get; private set; }
-    public List<AttachInfoRecord> WeaponsAttachPoints { get; private set; }
+    [JsonIgnore]
+    private List<AttachInfoRecord> f_WeaponsAttachPoints = new List<AttachInfoRecord>();
+    public List<AttachInfoRecord> WeaponAttachPoints { get { return f_WeaponsAttachPoints; } private set { f_WeaponsAttachPoints = value; } }
+    public List<AttachInfoRecord> WeaponsAttachPoints { get { return f_WeaponsAttachPoints; } private set { f_WeaponsAttachPoints = value; } }
     public List<string> Animators { get; private set; }
     public List<string> TwistAnimators { get; private set; }
     public Dictionary<ChassisLocations, CustomDestructableDef> Destructables { get; private set; }
@@ -165,18 +169,17 @@ namespace CustomUnits {
     public enum RepresentationApplyType { MoveBone, None }
     public virtual RepresentationType RepType { get { return RepresentationType.None; } }
     public string Id { get; set; }
+    public string Prefab { get; set; }
     public Dictionary<string, List<CustomAnimationEvent>> animationEvents { get; set; } = new Dictionary<string, List<CustomAnimationEvent>>();
     public void ApplyAnimationEvent(AnimationClip clip) {
       if(animationEvents.TryGetValue(clip.name, out var events)) {
         foreach (var evt in events) { evt.Apply(clip); }
       }
     }
-    //public List<LegGrounderDef> legGrounders { get; set; } = new List<LegGrounderDef>();
-    //public void ApplyGrounders(GameObject obj) { foreach (var g in legGrounders) { g.Apply(obj); }  }
-    //public List<LegSolverDef> legSolvers { get; set; } = new List<LegSolverDef>();
-    //public void ApplySolvers(GameObject obj) { foreach (var g in legSolvers) { g.Apply(obj); } }
     public CustomVector Scale { get; set; }
     public string PrefabBase { get; set; }
+    public List<string> NestedPrefabs { get; set; } = new List<string>();
+    public List<CustomHardpointDef> hardpoints { get; set; } = new List<CustomHardpointDef>();
     public string SourcePrefabIdentifier { get; set; }
     public string SourcePrefabBase { get; set; }
     public string ShaderSource { get; set; }
@@ -194,7 +197,10 @@ namespace CustomUnits {
     public List<string> Animators { get; set; }
     public bool InBattleAllAnimators { get; set; } = false;
     public List<CustomParticleSystemDef> Particles { get; set; }
-    public List<AttachInfoRecord> WeaponsAttachPoints { get; set; }
+    [JsonIgnore]
+    private List<AttachInfoRecord> f_WeaponsAttachPoints = new List<AttachInfoRecord>();
+    public List<AttachInfoRecord> WeaponAttachPoints { get { return f_WeaponsAttachPoints; } private set { f_WeaponsAttachPoints = value; } }
+    public List<AttachInfoRecord> WeaponsAttachPoints { get { return f_WeaponsAttachPoints; } private set { f_WeaponsAttachPoints = value; } }
     public CustomDestructionDef OnDestroy { get; set; }
     public List<string> CustomMouseReceiver { get; set; }
     public string persistentAudioStart { get; set; }
@@ -228,6 +234,83 @@ namespace CustomUnits {
           }
         }
       }
+    }
+    public virtual void RequestDependesies(LoadRequest loadRequest) {
+      Log.TWL(0, $"CustomActorRepresentationDef.RequestDependesies {this.Id}");
+      foreach(var nested in this.NestedPrefabs) {
+        if (string.IsNullOrEmpty(nested)) { continue; }
+        Log.WL(1, $"{nested}");
+        loadRequest.AddBlindLoadRequest(BattleTechResourceType.Prefab, nested ,false);
+      }
+      foreach (var hardpoint in this.hardpoints) {
+        if (string.IsNullOrEmpty(hardpoint.prefab)) { continue; }
+        Log.WL(1, $"{hardpoint.prefab}");
+        loadRequest.AddBlindLoadRequest(BattleTechResourceType.Prefab, hardpoint.prefab, false);
+      }
+    }
+    public virtual void RequestDependesies(DataManager.DependencyLoadRequest dependencyLoad) {
+      if (string.IsNullOrEmpty(this.SourcePrefabIdentifier) == false) {
+        dependencyLoad.RequestResource(BattleTechResourceType.Prefab, this.SourcePrefabIdentifier);
+      }
+      if (string.IsNullOrEmpty(this.ShaderSource) == false) {
+        dependencyLoad.RequestResource(BattleTechResourceType.Prefab, this.ShaderSource);
+      }
+      if (string.IsNullOrEmpty(this.BlipSource) == false) {
+        dependencyLoad.RequestResource(BattleTechResourceType.Prefab, this.BlipSource);
+      }
+      if (string.IsNullOrEmpty(this.BlipMeshSource) == false) {
+        dependencyLoad.RequestResource(BattleTechResourceType.Prefab, this.BlipMeshSource);
+      }
+      foreach (var nested in this.NestedPrefabs) {
+        if (string.IsNullOrEmpty(nested)) { continue; }
+        dependencyLoad.RequestResource(BattleTechResourceType.Prefab, nested);
+      }
+      foreach (var hardpoint in this.hardpoints) {
+        if (string.IsNullOrEmpty(hardpoint.prefab)) { continue; }
+        dependencyLoad.RequestResource(BattleTechResourceType.Prefab, hardpoint.prefab);
+      }
+    }
+    public virtual bool DependeciesLoaded(DataManager dataManager) {
+      bool result = true;
+      if (string.IsNullOrEmpty(this.SourcePrefabIdentifier) == false) {
+        if (dataManager.Exists(BattleTechResourceType.Prefab, this.SourcePrefabIdentifier) == false) {
+          DLog.WL(2, "Prefab " + this.SourcePrefabIdentifier + " is not loaded");
+          return false;
+        }
+      }
+      if (string.IsNullOrEmpty(this.ShaderSource) == false) {
+        if (dataManager.Exists(BattleTechResourceType.Prefab, this.ShaderSource) == false) {
+          DLog.WL(2, "Prefab " + this.ShaderSource + " is not loaded");
+          return false;
+        }
+      }
+      if (string.IsNullOrEmpty(this.BlipSource) == false) {
+        if (dataManager.Exists(BattleTechResourceType.Prefab, this.BlipSource) == false) {
+          DLog.WL(2, "Prefab " + this.BlipSource + " is not loaded");
+          return false;
+        }
+      }
+      if (string.IsNullOrEmpty(this.BlipMeshSource) == false) {
+        if (dataManager.Exists(BattleTechResourceType.Prefab, this.BlipMeshSource) == false) {
+          DLog.WL(2, "Prefab " + this.BlipMeshSource + " is not loaded");
+          return false;
+        }
+      }
+      foreach (var nested in this.NestedPrefabs) {
+        if (string.IsNullOrEmpty(nested)) { continue; }
+        if (dataManager.Exists(BattleTechResourceType.Prefab, nested) == false) {
+          DLog.WL(2, "Prefab " + nested + " is not loaded");
+          return false;
+        }
+      }
+      foreach (var hardpoint in this.hardpoints) {
+        if (string.IsNullOrEmpty(hardpoint.prefab)) { continue; }
+        if (dataManager.Exists(BattleTechResourceType.Prefab, hardpoint.prefab) == false) {
+          DLog.WL(2, "Prefab " + hardpoint.prefab + " is not loaded");
+          return false;
+        }
+      }
+      return result;
     }
     public CustomActorRepresentationDef() {
       WeaponsAttachPoints = new List<AttachInfoRecord>();
