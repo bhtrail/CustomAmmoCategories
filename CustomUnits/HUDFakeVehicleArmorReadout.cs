@@ -9,6 +9,7 @@
  *  If not, see <https://www.gnu.org/licenses/>. 
 */
 using BattleTech;
+using BattleTech.Data;
 using BattleTech.UI;
 using BattleTech.UI.TMProWrapper;
 using CustAmmoCategories;
@@ -82,14 +83,27 @@ namespace CustomUnits {
       activeState.SetCalledShot(this.ArmorLocation.toVehicleLocation());
     }
   }
+  public class PaperDollIcon {
+    public SVGAsset svg { get; set; } = null;
+    public Vector2 offset { get; set; }
+    public Vector2 size { get; set; }
+    public PaperDollIcon(CustomPaperDollIconDef def, DataManager dataMager) {
+
+    }
+    public PaperDollIcon(SVGImage img) {
+      this.svg = img.vectorGraphics;
+      this.offset = img.rectTransform.anchoredPosition;
+      this.size = img.rectTransform.sizeDelta;
+    }
+  }
   public class HUDFakeVehicleArmorReadout : HUDArmorReadout {
     public float hiddenColorLerp = 0.8f;
     public SVGImage[] VStructure;
     public SVGImage[] VArmor;
     public SVGImage[] VArmorOutline;
-    public SVGAsset[] default_VStructure;
-    public SVGAsset[] default_VArmor;
-    public SVGAsset[] default_VArmorOutline;
+    public PaperDollIcon[] default_VStructure;
+    public PaperDollIcon[] default_VArmor;
+    public PaperDollIcon[] default_VArmorOutline;
     private Mech displayedVehicle;
     public LocalizableText HoverInfoTextArmor;
     public LocalizableText HoverInfoTextStructure;
@@ -141,37 +155,50 @@ namespace CustomUnits {
     public void RefreshStructureIcons() {
       if (this.displayedVehicle == null) { return; }
       UnitCustomInfo info = this.displayedVehicle.GetCustomInfo();
-      if((info == null)||(info.customStructure == null)||(info.customStructure.is_empty)) {
-        for (int i = 0; i < VStructure.Length; ++i) { VStructure[i].vectorGraphics = default_VStructure[i]; }
-        for (int i = 0; i < VArmor.Length; ++i) { VArmor[i].vectorGraphics = default_VArmor[i]; }
-        for (int i = 0; i < VArmorOutline.Length; ++i) { VArmorOutline[i].vectorGraphics = default_VArmorOutline[i]; }
+      Log.TWL(0, $"HUDFakeVehicleArmorReadout.RefreshStructureIcons {this.displayedVehicle.PilotableActorDef.ChassisID} structure:{(info.CustomStructure)}");
+      Log.WL(1, $"is_empty:{(info.customStructure == null?"null": info.customStructure.is_empty.ToString())}");
+      if ((info == null)||(info.customStructure == null)||(info.customStructure.is_empty)) {
+        for (int i = 0; i < VStructure.Length; ++i) { if (VStructure[i] != null) {
+            VStructure[i].vectorGraphics = default_VStructure[i].svg; } }
+        for (int i = 0; i < VArmor.Length; ++i) { if (VArmor[i] != null) { VArmor[i].vectorGraphics = default_VArmor[i].svg; } }
+        for (int i = 0; i < VArmorOutline.Length; ++i) { if (VArmorOutline[i] != null) { VArmorOutline[i].vectorGraphics = default_VArmorOutline[i].svg; } }
         return;
       }
       for (int index = 0; index < 5; ++index) {
         ChassisLocations location = HUDVehicleArmorReadout.GetVCLocationFromIndex(index).toFakeChassis();
-        if(info.customStructure.OIcons.TryGetValue(location, out var oicon)){
-          VArmorOutline[index].vectorGraphics = CustomSvgCache.get(oicon, this.displayedVehicle.Combat.DataManager);
-          if (VArmorOutline[index].vectorGraphics == null) {
-            VArmorOutline[index].vectorGraphics = default_VArmorOutline[index];
+        Log.WL(1, $"location:{location}");
+        if (VArmorOutline[index] != null) {
+          if (info.customStructure.OIcons.TryGetValue(location, out var oicon)) {
+            Log.WL(2, $"icon:{oicon.icon}");
+            VArmorOutline[index].vectorGraphics = CustomSvgCache.get(oicon.icon, this.displayedVehicle.Combat.DataManager);
+            if (VArmorOutline[index].vectorGraphics == null) {
+              VArmorOutline[index].vectorGraphics = default_VArmorOutline[index].svg;
+            }
+          } else {
+            VArmorOutline[index].vectorGraphics = default_VArmorOutline[index].svg;
           }
-        } else {
-          VArmorOutline[index].vectorGraphics = default_VArmorOutline[index];
         }
-        if (info.customStructure.SIcons.TryGetValue(location, out var sicon)) {
-          VStructure[index].vectorGraphics = CustomSvgCache.get(sicon, this.displayedVehicle.Combat.DataManager);
-          if (VStructure[index].vectorGraphics == null) {
-            VStructure[index].vectorGraphics = default_VStructure[index];
+        if (VStructure[index] != null) {
+          if (info.customStructure.SIcons.TryGetValue(location, out var sicon)) {
+            Log.WL(2, $"icon:{sicon}");
+            VStructure[index].vectorGraphics = CustomSvgCache.get(sicon.icon, this.displayedVehicle.Combat.DataManager);
+            if (VStructure[index].vectorGraphics == null) {
+              VStructure[index].vectorGraphics = default_VStructure[index].svg;
+            }
+          } else {
+            VStructure[index].vectorGraphics = default_VStructure[index].svg;
           }
-        } else {
-          VStructure[index].vectorGraphics = default_VStructure[index];
         }
-        if (info.customStructure.AIcons.TryGetValue(location, out var aicon)) {
-          VArmor[index].vectorGraphics = CustomSvgCache.get(aicon, this.displayedVehicle.Combat.DataManager);
-          if (VArmor[index].vectorGraphics == null) {
-            VArmor[index].vectorGraphics = default_VArmor[index];
+        if (VArmor[index] != null) {
+          if (info.customStructure.AIcons.TryGetValue(location, out var aicon)) {
+            Log.WL(2, $"icon:{aicon}");
+            VArmor[index].vectorGraphics = CustomSvgCache.get(aicon.icon, this.displayedVehicle.Combat.DataManager);
+            if (VArmor[index].vectorGraphics == null) {
+              VArmor[index].vectorGraphics = default_VArmor[index].svg;
+            }
+          } else {
+            VArmor[index].vectorGraphics = default_VArmor[index].svg;
           }
-        } else {
-          VArmor[index].vectorGraphics = default_VArmor[index];
         }
       }
     }
@@ -183,9 +210,9 @@ namespace CustomUnits {
       this.VStructure = new SVGImage[csrc.VStructure.Length];
       this.VArmor = new SVGImage[csrc.VArmor.Length];
       this.VArmorOutline = new SVGImage[csrc.VArmorOutline.Length];
-      this.default_VStructure = new SVGAsset[csrc.VStructure.Length];
-      this.default_VArmor = new SVGAsset[csrc.VArmor.Length];
-      this.default_VArmorOutline = new SVGAsset[csrc.VArmorOutline.Length];
+      this.default_VStructure = new PaperDollIcon[csrc.VStructure.Length];
+      this.default_VArmor = new PaperDollIcon[csrc.VArmor.Length];
+      this.default_VArmorOutline = new PaperDollIcon[csrc.VArmorOutline.Length];
       Log.TWL(0, "HUDFakeVehicleArmorReadout.Copy "+ esrc.gameObject.name);
       try {
         this.directionalIndicatorFront = csrc.directionalIndicatorFront;
@@ -194,15 +221,27 @@ namespace CustomUnits {
         this.directionalIndicatorRight = csrc.directionalIndicatorRight;
         for (int index = 0; index < csrc.VStructure.Length; ++index) {
           this.VStructure[index] = csrc.VStructure[index];
-          this.default_VStructure[index] = csrc.VStructure[index].vectorGraphics;
+          if (csrc.VStructure[index] == null) {
+            this.default_VStructure[index] = null;
+          } else {
+            this.default_VStructure[index] = new PaperDollIcon(csrc.VStructure[index]);
+          }
         }
         for (int index = 0; index < csrc.VArmor.Length; ++index) {
           this.VArmor[index] = csrc.VArmor[index];
-          this.default_VArmor[index] = csrc.VArmor[index].vectorGraphics;
+          if (csrc.VArmor[index] == null) {
+            this.default_VArmor[index] = null;
+          } else {
+            this.default_VArmor[index] = new PaperDollIcon(csrc.VArmor[index]);
+          }
         }
         for (int index = 0; index < csrc.VArmorOutline.Length; ++index) {
           this.VArmorOutline[index] = csrc.VArmorOutline[index];
-          this.default_VArmorOutline[index] = csrc.VArmorOutline[index].vectorGraphics;
+          if (csrc.VArmorOutline[index] == null) {
+            this.default_VArmorOutline[index] = null;
+          } else {
+            this.default_VArmorOutline[index] = new PaperDollIcon(csrc.VArmorOutline[index]);
+          }
         }
 
       } catch (Exception e) {
