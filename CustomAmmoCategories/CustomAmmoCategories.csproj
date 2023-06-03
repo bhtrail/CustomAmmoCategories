@@ -43,6 +43,11 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Krafs.Publicizer" Version="2.2.1" />
+    <Publicize Include="Assembly-CSharp;UnityEngine.UI;UnityEngine.CoreModule;InControl" />
+    <DoNotPublicize Include="Assembly-CSharp:BattleTech.UI.SelectionState;Assembly-CSharp:WeaponEffect;Assembly-CSharp:BattleTech.UI.SelectionStateCommand" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(BattleTechGameDir)\Mods\ModTek\Harmony12X\0Harmony.dll</HintPath>
@@ -175,6 +180,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractActorInitEffectStats.cs" />
+    <Compile Include="ActorStatCache.cs" />
     <Compile Include="AdditionalImpactVFX.cs" />
     <Compile Include="AdvCritProc.cs" />
     <Compile Include="AdvWeaponHitInfo.cs" />
@@ -332,7 +338,12 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\CustomAmmoCategoriesHelper\CustomAmmoCategoriesHelper.csproj">
+      <Project>{b408488c-4125-4c36-9175-99e8f494526b}</Project>
+      <Name>CustomAmmoCategoriesHelper</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

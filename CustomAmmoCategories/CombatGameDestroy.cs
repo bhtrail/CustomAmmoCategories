@@ -23,8 +23,8 @@ namespace CustomAmmoCategoriesPatches {
   [HarmonyPatch(MethodType.Normal)]
   [HarmonyPatch(new Type[] { })]
   public static class CombatGameState_OnCombatGameDestroyed {
-    public static bool Prefix(CombatGameState __instance) {
-      Log.M.TWL(0,"CombatGameState.OnCombatGameDestroyed");
+    public static void Prefix(CombatGameState __instance) {
+      Log.Combat?.TWL(0,"CombatGameState.OnCombatGameDestroyed");
       try {
         WeaponStatCacheHelper.Clear();
         TempAmmoCountHelper.Clear();
@@ -67,14 +67,13 @@ namespace CustomAmmoCategoriesPatches {
         ToHit_GetAttackDirection.Clear();
         BlockWeaponsHelpers.Clear();
         AIDistanceFromNearesEnemyCache.Clear();
+        Mech_AddExternalHeat.Clear();
+        CombatHUD_Init.Clear();
+        UnitUnaffectionsActorStats.Clear();
       } catch (Exception e) {
-        Log.M.TWL(0, e.ToString());
+        Log.Combat?.TWL(0, e.ToString());
+        AttackDirector.logger.LogException(e);
       }
-      return true;
-    }
-    public static void Postfix(CombatGameState __instance) {
-      Log.M.TWL(0, "CombatGameState.OnCombatGameDestroyed");
-      //CustomAmmoCategories.clearAllWeaponEffects();
     }
   }
 }
