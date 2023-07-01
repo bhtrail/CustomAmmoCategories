@@ -735,6 +735,8 @@ namespace CustAmmoCategories {
     public float AMSHitChanceMult { get; set; } = 1f;
     [Key(137)]
     public int AMSInterceptedTrace { get; set; } = -1;
+    [Key(138)]
+    public bool PersistentJamming { get; set; } = false; 
     public ExtWeaponDef() { }
   }
 }
