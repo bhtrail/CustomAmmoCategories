@@ -217,7 +217,7 @@ namespace CustomUnits {
           this.FlyingHeight(0f);
           UpdateLOSHeight(this.FlyingHeight());
           if (this.custGameRep != null) {
-            this.custGameRep.HeightController?.ForceHeight(0f);
+            this.custGameRep.SetVisualHeight(0f);
             if (this.custGameRep.customRep != null) {
               this.custGameRep.customRep.InBattle = false;
             }
@@ -436,6 +436,35 @@ namespace CustomUnits {
         AbstractActor.initLogger.LogException(e);
       }
     }
+    public virtual void _NukeStructureLocation(WeaponHitInfo hitInfo, int hitLoc, ChassisLocations location, Vector3 attackDirection, DamageType damageType) {
+      Log.Combat?.WL(0, $"CustomMech.NukeStructureLocation {this.PilotableActorDef.ChassisID} location:{location} hitLoc:{(ArmorLocation)hitLoc}");
+      try {
+        if (AbstractActor.attackLogger.IsLogEnabled)
+          AbstractActor.attackLogger.Log($"{this.PilotableActorDef.ChassisID} SEQ:{hitInfo.stackItemUID}: WEAP:{hitInfo.attackWeaponIndex} HITLOC: {hitLoc} ({location}) Location destroyed!");
+        if (AbstractActor.damageLogger.IsLogEnabled)
+          AbstractActor.damageLogger.Log($"==== Location Destroyed: {this.PilotableActorDef.ChassisID} {location}");
+        this.ApplyStructureStatDamage(location, this.GetCurrentStructure(location), hitInfo);
+        try {
+          this.OnLocationDestroyed_private(location, attackDirection, hitInfo, damageType);
+        }catch(Exception e) {
+          Log.ECombat?.TWL(0, e.ToString(), true);
+          AbstractActor.damageLogger.LogException(e);
+        }
+        ArmorLocation fromChassisLocation = MechStructureRules.GetArmorFromChassisLocation(location);
+        foreach (ArmorLocation location1 in Enum.GetValues(typeof(ArmorLocation))) {
+          if (location1 > ArmorLocation.None && location1 < ArmorLocation.Invalid && (location1 & fromChassisLocation) != ArmorLocation.None)
+            this.ApplyArmorStatDamage(location1, this.GetCurrentArmor(location1), hitInfo);
+        }
+        ChassisLocations dependentLocation = MechStructureRules.GetDependentLocation(location);
+        Log.Combat?.WL(1, $"dependentLocation:{dependentLocation} isDestroyed:{(dependentLocation == ChassisLocations.None?"None":this.IsLocationDestroyed(dependentLocation).ToString())}");
+        if (dependentLocation == ChassisLocations.None || this.IsLocationDestroyed(dependentLocation))
+          return;
+        this.NukeStructureLocation(hitInfo, 0, dependentLocation, Vector3.one, damageType);
+      } catch (Exception e) {
+        Log.ECombat?.TWL(0,e.ToString(),true);
+        AbstractActor.damageLogger.LogException(e);
+      }
+    }
     //private static MethodInfo Mech_InitGameRep = null;
     //private static Patches Mech_InitGameRep_patches = null;
     //public virtual void MechInitGameRep_prefixes(Transform parentTransform) {
@@ -540,7 +569,7 @@ namespace CustomUnits {
         foreach(MonoBehaviour component in this.GameRep.gameObject.GetComponentsInChildren<MonoBehaviour>(true)) {
           if (component is IOnRepresentationInit onRepInit) { onRepInit.Init(this.GameRep.gameObject); }
         }
-        this.custGameRep.HeightController.ForceHeight(this.FlyingHeight());
+        this.custGameRep.SetVisualHeight(this.FlyingHeight());
       }catch(Exception e) {
         Log.Combat?.TWL(0,e.ToString(),true);
         AbstractActor.initLogger.LogException(e);
@@ -740,7 +769,7 @@ namespace CustomUnits {
         }
         ChassisLocations fromArmorLocation = MechStructureRules.GetChassisLocationFromArmorLocation(aLoc);
         Vector3 attackDirection = Vector3.one;
-        if ((UnityEngine.Object)this.GameRep != (UnityEngine.Object)null && (UnityEngine.Object)weapon.weaponRep != (UnityEngine.Object)null) {
+        if (this.GameRep != null && weapon.weaponRep != null) {
           Vector3 position = weapon.weaponRep.vfxTransforms[0].position;
           Vector3 vector3 = this.GameRep.GetVFXTransform((int)fromArmorLocation).position - position;
           vector3.Normalize();
@@ -778,6 +807,9 @@ namespace CustomUnits {
           AbstractActor.attackLogger.Log((object)string.Format("SEQ:{0}: WEAP:{1} HITLOC: {2} ({3}) Passing {4} damage through to {5}", (object)hitInfo.attackSequenceId, (object)hitInfo.attackWeaponIndex, (object)originalHitLoc, (object)fromArmorLocation.ToString(), (object)num1, (object)passthroughLocation.ToString()));
         if (AbstractActor.damageLogger.IsLogEnabled)
           AbstractActor.damageLogger.Log((object)string.Format("==== {0} Armor Destroyed: {1} Damage applied to {2}", (object)fromArmorLocation.ToString(), (object)num1, (object)passthroughLocation.ToString()));
+        if(passthroughLocation == ArmorLocation.None || passthroughLocation == ArmorLocation.Invalid) {
+          return false;
+        }
         return this.DamageLocation_private(originalHitLoc, hitInfo, passthroughLocation, weapon, num1, num2, hitIndex, impactQuality, damageType);
       }catch(Exception e) {
         Log.Combat?.TWL(0,e.ToString(),true);
@@ -1039,11 +1071,11 @@ namespace CustomUnits {
       }
       public void OnAnimationCompleete() {
         this.OnLand?.Invoke();
-        this.parent.custGameRep.HeightController.heightChangeCompleteAction.Add(this.OnRestoreInt);
-        this.parent.custGameRep.HeightController.PendingHeight = this.height;
+        this.parent.custGameRep.RegisterHeightChangeCompleteEvent(this.OnRestoreInt);
+        this.parent.custGameRep.PendVisualHeight(this.height);
       }
       public void OnLandInt() {
-        this.parent.custGameRep.HeightController.heightChangeCompleteAction.Clear();
+        this.parent.custGameRep.ClearHeightChangeCompleteEvent();
         if(this.parent.custGameRep.customRep != null) {
           this.parent.custGameRep.customRep.DropOffAnimation(this.OnAnimationCompleete);
         } else {
@@ -1055,14 +1087,14 @@ namespace CustomUnits {
       }
     }
     public virtual void DropOffAnimation(Action OnLand = null, Action OnRestoreHeight = null) {
-      float current_height = this.custGameRep.HeightController.CurrentHeight;
+      float current_height = this.custGameRep.GetVisualHeight();
       if (current_height < Core.Epsilon) {
         OnLand?.Invoke(); OnRestoreHeight?.Invoke();
         return;
       }
-      this.custGameRep.HeightController.heightChangeCompleteAction.Clear();
-      this.custGameRep.HeightController.heightChangeCompleteAction.Add(new DropOffDelegate(this, current_height, OnLand, OnRestoreHeight).OnLandInt);
-      this.custGameRep.HeightController.PendingHeight = 0f;
+      this.custGameRep.ClearHeightChangeCompleteEvent();
+      this.custGameRep.RegisterHeightChangeCompleteEvent(new DropOffDelegate(this, current_height, OnLand, OnRestoreHeight).OnLandInt);
+      this.custGameRep.PendVisualHeight(0f);
     }
   }
   public static class AttachExampleHelper {

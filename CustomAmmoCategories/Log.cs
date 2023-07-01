@@ -39,6 +39,7 @@ namespace CustomAmmoCategoriesLog {
     AIM,
     Objects,
     Sounds,
+    Sequence,
     Profile, HeatSinking, Combat
   }
   public class LogFile {
@@ -131,12 +132,12 @@ namespace CustomAmmoCategoriesLog {
     }
     public void TW(int initiation, string line, bool isCritical = false) {
       string init = new string(' ', initiation);
-      line = "[" + DateTime.Now.ToString("HH:mm:ss.fff") + "]" + init + line;
+      line = "[" + DateTime.UtcNow.ToString("HH:mm:ss.fff") + "]" + init + line;
       this.W(line, isCritical);
     }
     public void TWL(int initiation, string line, bool isCritical = false) {
       string init = new string(' ', initiation);
-      line = "[" + DateTime.Now.ToString("HH:mm:ss.fff") + "]" + init + line;
+      line = "[" + DateTime.UtcNow.ToString("HH:mm:ss.fff") + "]" + init + line;
       this.WL(line, isCritical);
     }
   }
@@ -171,6 +172,7 @@ namespace CustomAmmoCategoriesLog {
     //public static LogFile CB { get { return Log.logs[LogFileType.CharlesB]; } }
     public static LogFile O { get { return Log.logs[LogFileType.Objects]; } }
     public static LogFile S { get { return Log.logs[LogFileType.Sounds]; } }
+    public static LogFile Seq { get { return Log.logs[LogFileType.Sequence]; } }
     public static LogFile HS { get { return Log.logs[LogFileType.HeatSinking]; } }
     public static LogFile AIM { get { return Log.logs[LogFileType.AIM]; } }
     public static void InitLog() {

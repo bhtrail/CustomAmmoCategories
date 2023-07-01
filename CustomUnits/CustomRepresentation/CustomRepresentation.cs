@@ -230,7 +230,7 @@ namespace CustomUnits {
     }
     public bool StartRandomIdle {
       set {
-        Log.Combat?.TWL(0, "CustomTwistAnimation.StartRandomIdle: " + value);
+        //Log.Combat?.TWL(0, "CustomTwistAnimation.StartRandomIdle: " + value);
         if (value) { if (idleTimeElapsed.IsRunning == false) { idleTimeElapsed.Reset(); idleTimeElapsed.Start(); }; } else { idleTimeElapsed.Reset(); idleTimeElapsed.Stop(); }
         foreach (CustomTwistAnimatorInfo info in twistAnimators) { info.StartRandomIdle = value; }
         foreach (HardPointAnimationController info in hardpointsAnimators) { info.StartRandomIdle = value; }
@@ -1661,9 +1661,7 @@ namespace CustomUnits {
       if (customRepresentation == null) { customRepresentation = result.AddComponent<CustomRepresentation>(); }
       customRepresentation.Init(custMechRep, custRepDef);
       custMechRep.customRep = customRepresentation;
-      MechFlyHeightController heightController = result.GetComponent<MechFlyHeightController>();
-      if (heightController == null) { heightController = result.AddComponent<MechFlyHeightController>(); };
-      custMechRep.HeightController = heightController;
+      custMechRep.CreateHeightController();
       //custMechRep.Test();
       return result;
     }

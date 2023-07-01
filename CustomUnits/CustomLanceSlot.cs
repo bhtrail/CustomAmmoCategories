@@ -10,6 +10,7 @@
 */
 using BattleTech;
 using BattleTech.Data;
+using BattleTech.Framework;
 using BattleTech.UI;
 using BattleTech.UI.Tooltips;
 using CustAmmoCategories;
@@ -23,6 +24,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -192,6 +194,100 @@ namespace CustomUnits {
       return;
     }
   }
+  [HarmonyPatch(typeof(LanceConfiguratorPanel))]
+  [HarmonyPatch("LoadOverrideLance")]
+  [HarmonyPatch(MethodType.Normal)]
+  [HarmonyPatch(new Type[] { typeof(LanceConfiguration) })]
+  public static class LanceConfiguratorPanel_LoadOverrideLance {
+    private static void Sanitize(this LanceConfiguratorPanel __instance, SpawnableUnit[] includeEmptySlots) {
+      Log.M?.TWL(0, "LanceConfiguratorPanel.LoadOverrideLance.Sanitize");
+      Log.M?.WL(1, $"inventory:{__instance.mechListWidget.inventory.Count}");
+      foreach(var unit in __instance.mechListWidget.inventory) {
+        if (unit.MechDef == null) { continue; }
+        Log.M?.WL(2,$"mech:{unit.MechDef.Description.Id} chassis:{unit.MechDef.Chassis.Description.Id} guid:{unit.MechDef.GUID}");
+      }
+      //for (int i = 0; i < includeEmptySlots.Length; ++i) {
+      //  Log.M?.WL(1, $"slot[{i}] Unit.GUID:{(includeEmptySlots[i].Unit == null ? "null" : (includeEmptySlots[i].Unit.GUID))} UnitId:{includeEmptySlots[i].UnitId}");
+      //  if(includeEmptySlots[i].Unit)
+      //}
+    }
+    public static void Prefix(ref bool __runOriginal, LanceConfiguratorPanel __instance, LanceConfiguration lance) {
+      if (!__runOriginal) { return; }
+      try {
+        __instance.mechwarriorLoadNotification.SetActive(true);
+        __instance.mechwarriorLoadNotification.SetActive(false);
+        Log.M?.TWL(0, "LanceConfiguratorPanel.LoadOverrideLance");
+        SpawnableUnit[] includeEmptySlots = lance.GetLanceUnitsIncludeEmptySlots();
+        __instance.Sanitize(includeEmptySlots);
+        for (int index = 0; index < includeEmptySlots.Length; ++index) {
+          Log.M?.WL(1, $"slot[{index}] Unit.GUID:{(includeEmptySlots[index].Unit==null?"null": (includeEmptySlots[index].Unit.GUID))} UnitId:{includeEmptySlots[index].UnitId}");
+          SpawnableUnit unit = includeEmptySlots[index];
+          if (unit.unitType != UnitType.UNDEFINED && index < __instance.loadoutSlots.Length) {
+            LanceLoadoutSlot loadoutSlot = __instance.loadoutSlots[index];
+            IMechLabDraggableItem labDraggableItem = null;
+            if (includeEmptySlots[index].Unit != null) 
+              labDraggableItem = __instance.mechListWidget.GetMechDefByGUID(includeEmptySlots[index].Unit.GUID);
+            if (labDraggableItem == null) {
+              Log.M?.WL(2, "unit is not found by GUID. Searching by UnitId");
+              labDraggableItem = __instance.mechListWidget.GetInventoryItem(includeEmptySlots[index].UnitId);
+            } else {
+              Log.M?.WL(2, "unit is found by GUID.");
+            }
+            if (labDraggableItem == null && unit.Unit != null) {
+              Log.M?.WL(2, "new lance item");
+              labDraggableItem = __instance.mechListWidget.CreateLanceItem(new MechDef(unit.Unit, __instance.Sim.GenerateSimGameUID()));
+            }
+            IMechLabDraggableItem pilot = __instance.pilotListWidget.GetPilot(unit.PilotId);
+            if (pilot == null && unit.Pilot != null) {
+              __instance.pilotListWidget.AddPilot(new Pilot((PilotDef)null, string.Format("Override_{0}", (object)unit.PilotId), false), null, false);
+              pilot = __instance.pilotListWidget.GetPilot(unit.PilotId);
+              __instance.pilotListWidget.RemovePilot(__instance.availablePilots.Find((Predicate<Pilot>)(x => x.Description.Id == unit.PilotId)));
+            }
+            IMechLabDraggableItem forcedMech = labDraggableItem;
+            IMechLabDraggableItem forcedPilot = pilot;
+            loadoutSlot.SetLockedData(forcedMech, forcedPilot, true);
+          }
+        }
+        __runOriginal = false;
+      } catch (Exception e) {
+        Log.E?.TWL(0, e.ToString(), true);
+      }
+    }
+  }
+  [HarmonyPatch(typeof(MechBayMechStorageWidget))]
+  [HarmonyPatch("InitInventory")]
+  [HarmonyPatch(MethodType.Normal)]
+  [HarmonyPatch(new Type[] { typeof(List<MechDef>), typeof(bool) })]
+  public static class MechBayMechStorageWidget_InitInventory {
+    public static void Prefix(ref bool __runOriginal, MechBayMechStorageWidget __instance, List<MechDef> mechDefs, bool resetFilters) {
+      if (!__runOriginal) { return; }
+      try {
+        Log.M?.TWL(0,$"MechBayMechStorageWidget.InitInventory:{mechDefs.Count}");
+        foreach(var mech in mechDefs) {
+          Log.M?.WL(1, $"{mech.Description.Id}:{mech.Chassis.Description.Id} guid:{mech.GUID}");
+        }
+        Log.M?.WL(0, Environment.StackTrace);
+      } catch (Exception e) {
+        Log.E?.TWL(0, e.ToString(), true);
+      }
+    }
+  }
+  //[HarmonyPatch(typeof(SimGameState))]
+  //[HarmonyPatch("CompleteLanceConfigurationPrep")]
+  //[HarmonyPatch(MethodType.Normal)]
+  //[HarmonyPatch(new Type[] { typeof(LoadRequest) })]
+  //[HarmonyAfter("co.uk.cwolf.MissionControl")]
+  //public static class SimGameState_CompleteLanceConfigurationPrep {
+  //  public static void Prefix(ref bool __runOriginal, SimGameState __instance, LoadRequest request) {
+  //    if (!__runOriginal) { return; }
+  //    __runOriginal = false;
+  //    try {
+  //      Log.M?.TWL(0, $"SimGameState.CompleteLanceConfigurationPrep");
+  //    } catch (Exception e) {
+  //      Log.E?.TWL(0, e.ToString(), true);
+  //    }
+  //  }
+  //}
   [HarmonyPatch(typeof(LanceLoadoutSlot))]
   [HarmonyPatch("OnAddItem")]
   [HarmonyPatch(MethodType.Normal)]
@@ -437,9 +533,75 @@ namespace CustomUnits {
         UIManager.logger.LogException(e);
       }
     }
-    public static void Prefix(LanceConfiguratorPanel __instance, SimGameState sim, ref int maxUnits, Contract contract) {
+    internal class SanitizeUnitData {
+      public List<SanitizeLanceConfigData> lanceData = new List<SanitizeLanceConfigData>();
+      public List<int> indexes = new List<int>();
+    }
+    internal class SanitizeLanceConfigData {
+      public string lanceid;
+      public int index;
+      public SanitizeLanceConfigData(string l, int i) { this.lanceid = l; this.index = i; }
+    }
+    public static void SanitizeInventoryAndConfig(this LanceConfiguratorPanel __instance, SimGameState sim, List<MechDef> mechs, LanceConfiguration overrideLance) {
+      Dictionary<MechDef, SanitizeUnitData> mechdefData = new Dictionary<MechDef, SanitizeUnitData>();
+      Log.M?.TWL(0, "LanceConfiguratorPanel.SanitizeInventoryAndConfig");
+      try {
+        for (int t = 0; t < mechs.Count; ++t) {
+          if (mechdefData.TryGetValue(mechs[t], out var data) == false) {
+            data = new SanitizeUnitData();
+            mechdefData.Add(mechs[t], data);
+          }
+          data.indexes.Add(t);
+        }
+        if ((overrideLance != null) && (overrideLance.lanceConfigurations != null)) {
+          foreach (var lance in overrideLance.lanceConfigurations) {
+            for (int t = 0; t < lance.Value.Count; ++t) {
+              if (lance.Value[t].Unit == null) { continue; }
+              if (mechdefData.TryGetValue(lance.Value[t].Unit, out var data) == false) {
+                data = new SanitizeUnitData();
+                mechdefData.Add(mechs[t], data);
+              }
+              data.lanceData.Add(new SanitizeLanceConfigData(lance.Key, t));
+            }
+          }
+        }
+        Log.M?.WL(1, $"data:{mechdefData.Count}");
+        foreach (var data in mechdefData) {
+          if ((data.Value.indexes.Count > 1) || (data.Value.lanceData.Count > 1)) {
+            Log.M?.WL(2, $"duplicate found:{data.Key.Description.Id}:{data.Key.Chassis.Description.Id} guid:{data.Key.GUID}");
+            int count = Mathf.Max(data.Value.indexes.Count, data.Value.lanceData.Count);
+            for (int t = 1; t < count; ++t) {
+              MechDef mech = new MechDef(data.Key, sim.GenerateSimGameUID());
+              Log.M?.WL(3, $"creating new:{mech.Description.Id}:{mech.Chassis.Description.Id} guid:{mech.GUID}");
+              if (t < data.Value.indexes.Count) {
+                mechs[data.Value.indexes[t]] = mech;
+                Log.M?.WL(4, $"inventory index:{data.Value.indexes[t]}");
+              }
+              if (t < data.Value.lanceData.Count) {
+                overrideLance.lanceConfigurations[data.Value.lanceData[t].lanceid][data.Value.lanceData[t].index].Unit = mech;
+                Log.M?.WL(4, $"lance:{data.Value.lanceData[t].lanceid} index:{data.Value.lanceData[t].index}");
+              }
+            }
+            //Log.M?.WL(2, $"mech:{data.Key.Description.Id}:{data.Key.Chassis.Description.Id} guid:{data.Key.GUID}");
+            //Log.M?.WL(3, $"inventory:{data.Value.indexes.Count}");
+            //foreach (int index in data.Value.indexes) {
+            //  Log.M?.WL(4, $"{index}");
+            //}
+            //Log.M?.WL(3, $"lance:{data.Value.lanceData.Count}");
+            //foreach (var index in data.Value.lanceData) {
+            //  Log.M?.WL(4, $"lance:{index.lanceid} index:{index.index}");
+            //}
+          }
+        }
+      }catch(Exception e) {
+        Log.E?.TWL(0, e.ToString(), true);
+        UIManager.logger.LogException(e);
+      }
+    }
+    public static void Prefix(LanceConfiguratorPanel __instance, SimGameState sim, ref int maxUnits, Contract contract, List<MechDef> mechs, LanceConfiguration overrideLance) {
       try {
         Log.M?.TWL(0, "LanceConfiguratorPanel.SetData prefix");
+        if(sim != null)__instance.SanitizeInventoryAndConfig(sim, mechs, overrideLance);
         ShuffleLanceSlotsLayout customLanceSlotsLayout = __instance.loadoutSlots[0].transform.parent.gameObject.GetComponent<ShuffleLanceSlotsLayout>();
         if (customLanceSlotsLayout == null) { customLanceSlotsLayout = __instance.loadoutSlots[0].transform.parent.gameObject.AddComponent<ShuffleLanceSlotsLayout>(); }
         customLanceSlotsLayout.currentLanceIndex = 0;

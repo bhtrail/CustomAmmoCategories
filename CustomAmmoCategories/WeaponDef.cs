@@ -736,7 +736,33 @@ namespace CustAmmoCategories {
     [Key(137)]
     public int AMSInterceptedTrace { get; set; } = -1;
     [Key(138)]
-    public bool PersistentJamming { get; set; } = false; 
+    public List<string> RestrictedAmmo { get; set; } = new List<string>();
+    [Key(139), StatCollectionFloat]
+    public float MinRangeClusterMod { get; set; } = 0f;
+    [Key(140), StatCollectionFloat]
+    public float ShortRangeClusterMod { get; set; } = 0f;
+    [Key(141), StatCollectionFloat]
+    public float MediumRangeClusterMod { get; set; } = 0f;
+    [Key(142), StatCollectionFloat]
+    public float LongRangeClusterMod { get; set; } = 0f;
+    [Key(143), StatCollectionFloat]
+    public float MaxRangeClusterMod { get; set; } = 0f;
+    [Key(144)]
+    public bool PersistentJamming { get; set; } = false;
+    [IgnoreMember, JsonIgnore]
+    private HashSet<string> f_restrictedAmmo = null;
+    [IgnoreMember, JsonIgnore]
+    public HashSet<string> restrictedAmmo {
+      get {
+        if (this.RestrictedAmmo == null) { this.RestrictedAmmo = new List<string>(); }
+        if (f_restrictedAmmo == null) {
+          f_restrictedAmmo = new HashSet<string>();
+          foreach (string v in RestrictedAmmo) { f_restrictedAmmo.Add(v); }
+        }
+        return f_restrictedAmmo;
+      }
+    }
+    
     public ExtWeaponDef() { }
   }
 }

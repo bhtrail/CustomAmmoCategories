@@ -652,6 +652,12 @@ namespace CustomUnits {
         altRep.ApplyScale(sizeMultiplier);
       }
     }
+    public override void ForcePositionToTerrain(Vector3 finalPos) {
+      this.thisTransform.position = finalPos;
+      foreach (var altRep in this.Alternates) {
+        altRep.ForcePositionToTerrain(finalPos);
+      }
+    }
   }
   public partial class CustomMechRepresentation {
     protected MechFlyHeightController FHeightController = null;
@@ -661,6 +667,7 @@ namespace CustomUnits {
     public virtual bool RotateBody { get; set; } = false;
     public virtual bool SkipLateUpdate { get; set; } = false;
     public virtual bool HasOwnVisuals { get { return true; } }
+    public virtual bool ControlOwnHeight { get; set; } = true;
     protected HashSet<string> f_presistantAudioStart = new HashSet<string>();
     protected HashSet<string> f_presistantAudioStop = new HashSet<string>();
     protected HashSet<string> f_moveAudioStart = new HashSet<string>();
@@ -687,6 +694,21 @@ namespace CustomUnits {
         Log.Combat?.WL(1, collider.gameObject.name);
         this.selfColliders.Add(collider);
       }
+    }
+    public virtual void SetVisualHeight(float height) {
+      this.HeightController?.ForceHeight(height);
+    }
+    public virtual void PendVisualHeight(float height) {
+      this.HeightController.PendingHeight = (height);
+    }
+    public virtual float GetVisualHeight() {
+      return this.HeightController.CurrentHeight;
+    }
+    public virtual void RegisterHeightChangeCompleteEvent(Action e) {
+      this.HeightController.heightChangeCompleteAction.Add(e);
+    }
+    public virtual void ClearHeightChangeCompleteEvent() {
+      this.HeightController.heightChangeCompleteAction.Clear();
     }
     public virtual void RegisterRenderersMainHeraldry(GameObject src) {
       Log.Combat?.TW(0, "CustomMechRepresentation.RegisterRenderersMainHeraldry: " + this.gameObject.name + " " + src.name);
@@ -846,7 +868,7 @@ namespace CustomUnits {
     }
     public virtual void Twist(float angle) {
       this.currentTwistAngle = angle;
-      Log.Combat?.TWL(0, "CustomMechRepresentation.Twist " + angle + " HasTwistAnimators:" + (this.customRep == null ? "null" : this.customRep.HasTwistAnimators.ToString()));
+      //Log.Combat?.TWL(0, "CustomMechRepresentation.Twist " + angle + " HasTwistAnimators:" + (this.customRep == null ? "null" : this.customRep.HasTwistAnimators.ToString()));
       if (this.customRep != null) {
         if (this.customRep.HasTwistAnimators) {
           this.customRep.Twist(angle);
@@ -1220,7 +1242,7 @@ namespace CustomUnits {
         } else {
           slowdown_factor = 1f / ((0.5f - slowdown_factor) * 8f + 1f);
         }
-        Log.Combat?.WL(0, "HeightController.LateUpdate current height:" + parent.j_Root.transform.localPosition.y + " delta:" + delta + " StartingHeight:" + this.StartingHeight + " PendingHeight:" + PendingHeight + " slowdown_factor:" + slowdown_factor);
+        //Log.Combat?.WL(0, "HeightController.LateUpdate current height:" + parent.j_Root.transform.localPosition.y + " delta:" + delta + " StartingHeight:" + this.StartingHeight + " PendingHeight:" + PendingHeight + " slowdown_factor:" + slowdown_factor);
         float height = parent.j_Root.transform.localPosition.y;
         float sign = height < this.PendingHeight ? this.UpSpeed : (this.DownSpeed * slowdown_factor);
         float ndelta = sign * Time.deltaTime;
