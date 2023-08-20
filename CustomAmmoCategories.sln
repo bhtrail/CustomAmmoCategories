@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomAmmoCategories", "CustomAmmoCategories\CustomAmmoCategories.csproj", "{88BB9FF5-DA8F-4E02-9554-58595E34378C}"
 EndProject
@@ -14,6 +14,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoicePackDefCreator", "VoicePackDefCreator\VoicePackDefCreator.csproj", "{ABC7834A-B17E-4FC6-9DF4-12882E781241}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6BAC2C62-C716-4939-8C11-17CF9BA18D81}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CACAccModDemo", "CACAccModDemo\CACAccModDemo.csproj", "{971E42D0-606F-4231-8EBD-9EDF49134EE2}"
 EndProject
