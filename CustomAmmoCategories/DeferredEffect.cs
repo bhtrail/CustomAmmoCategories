@@ -41,11 +41,14 @@ namespace CustAmmoCategories {
       }
     }
     public static DeferredEffectDef DeferredEffect(this Weapon weapon) {
+      DeferredEffectDef result = null;
       WeaponMode mode = weapon.mode();
-      if (mode.deferredEffect.rounds > 0) { return mode.deferredEffect; }
+      if (mode.deferredEffect.rounds > 0) { result = mode.deferredEffect; }
       ExtAmmunitionDef ammo = weapon.ammo();
-      if (ammo.deferredEffect.rounds > 0) { return ammo.deferredEffect; }
-      return weapon.exDef().deferredEffect;
+      if (ammo.deferredEffect.rounds > 0) { result = ammo.deferredEffect; }
+      result = weapon.exDef().deferredEffect;
+      if(result.getFromWeapon == false) { return result; }
+      return new DeferredEffectDef(result, weapon);
     }
     public static void addToClear(DeferredEffect effect) {
       clearEffects.Add(effect);
@@ -109,6 +112,7 @@ namespace CustAmmoCategories {
         CurrentRound = -1;
       }catch(Exception e) {
         Log.M?.TWL(0,e.ToString(),true);
+        CombatGameState.gameInfoLogger.LogException(e);
       }
     }
     public static void CreateDifferedEffect(this Weapon weapon, ICombatant target) {
