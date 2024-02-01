@@ -930,13 +930,15 @@ namespace CustomUnits {
               GameObject.Destroy(tr.gameObject);
             }
           }
-          decorationLocal.SetParent(mainBorder.parent);
+          decorationLocal.SetParent(mainBorder.parent);          
           decorationLocal.localPosition = mainBorder.localPosition;
           decorationLocal.localRotation = mainBorder.localRotation;
-          decorationLocal.localScale = mainBorder.localScale;
-          decorationLocal.pivot = new Vector2(0.5f, -1.0f);
-          decorationLocal.sizeDelta = new Vector2(rectTransform.sizeDelta.x, rectTransform.sizeDelta.y - (mainBorder as RectTransform).sizeDelta.y);
-          decorationLocal.anchoredPosition = new Vector2(0f, 0f - ((mainBorder as RectTransform).sizeDelta.y / 2.0f));
+          decorationLocal.localScale = new Vector3(1, 1, 1);
+          decorationLocal.anchorMin = new Vector2(0, 0);
+          decorationLocal.anchorMax = new Vector2(0, 0);
+          decorationLocal.pivot = new Vector2(0, 0);
+          decorationLocal.sizeDelta = new Vector2(0, 22);
+          decorationLocal.anchoredPosition = new Vector2(3f, 22f);
           Image img = decorationLocal.gameObject.GetComponent<Image>();
           img.enabled = true;
           img.color = Color.black;
