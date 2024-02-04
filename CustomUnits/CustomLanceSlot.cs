@@ -266,7 +266,7 @@ namespace CustomUnits {
         foreach(var mech in mechDefs) {
           Log.M?.WL(1, $"{mech.Description.Id}:{mech.Chassis.Description.Id} guid:{mech.GUID}");
         }
-        Log.M?.WL(0, Environment.StackTrace);
+        //Log.M?.WL(0, Environment.StackTrace);
       } catch (Exception e) {
         Log.E?.TWL(0, e.ToString(), true);
       }
@@ -880,7 +880,7 @@ namespace CustomUnits {
           group = decorationLayout.gameObject.AddComponent<HorizontalLayoutGroup>();
           group.spacing = 8f;
           group.padding = new RectOffset(10, 10, 0, 0);
-          group.childAlignment = TextAnchor.MiddleRight;
+          group.childAlignment = TextAnchor.MiddleLeft;
           group.childControlHeight = false;
           group.childControlWidth = false;
           group.childForceExpandHeight = false;
@@ -937,7 +937,7 @@ namespace CustomUnits {
           decorationLocal.anchorMin = new Vector2(0, 0);
           decorationLocal.anchorMax = new Vector2(0, 0);
           decorationLocal.pivot = new Vector2(0, 0);
-          decorationLocal.sizeDelta = new Vector2(0, 22);
+          decorationLocal.sizeDelta = new Vector2(100, 22);
           decorationLocal.anchoredPosition = new Vector2(3f, 22f);
           Image img = decorationLocal.gameObject.GetComponent<Image>();
           img.enabled = true;
@@ -947,7 +947,7 @@ namespace CustomUnits {
             group = decorationLocal.gameObject.AddComponent<HorizontalLayoutGroup>();
             group.spacing = 8f;
             group.padding = new RectOffset(10, 10, 0, 0);
-            group.childAlignment = UnityEngine.TextAnchor.MiddleRight;
+            group.childAlignment = TextAnchor.MiddleLeft;
             group.childControlHeight = false;
             group.childControlWidth = false;
             group.childForceExpandHeight = false;
